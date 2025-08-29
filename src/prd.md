@@ -28,14 +28,14 @@
 - **Success criteria**: Responsive animations, clear mood indicators, rewarding interactions
 
 ### Forest Blessing System (Enhanced Feature)
-- **What it does**: Happy cats can bless the forest to accelerate tree growth for premium points
-- **Why it matters**: Creates synergy between cat care and forest growth, encouraging consistent engagement
-- **Success criteria**: Clear visual feedback, meaningful impact on tree growth, appropriate cost balancing
+- **What it does**: Happy cats can bless the forest to accelerate tree growth across all ground levels for premium points
+- **Why it matters**: Creates synergy between cat care and forest growth, encouraging consistent engagement while adding magical elements
+- **Success criteria**: Clear visual feedback, meaningful impact on tree growth across the 2D landscape, appropriate cost balancing
 
 ### Tree Planting & Forest Growth
-- **What it does**: Users spend points to plant different tree types that grow over time in a natural forest layout
-- **Why it matters**: Provides long-term visual representation of productivity progress
-- **Success criteria**: Varied tree types, realistic growth progression, beautiful forest visualization
+- **What it does**: Users spend points to plant different tree types that grow over time in a realistic 2D side-view forest with multiple ground levels
+- **Why it matters**: Provides long-term visual representation of productivity progress in an immersive forest landscape
+- **Success criteria**: Varied tree types on different terrain heights, realistic growth progression, beautiful layered forest visualization with depth and natural elements
 
 ### Point Economy
 - **What it does**: Paw Points earned from task completion can be spent on cat care (15 points) or tree planting (20-35 points) or forest blessings (25 points)

@@ -190,7 +190,7 @@ export default function CatAvatar({ catState, pawPoints, onCareCat, onBlessFores
                 <Sparkle className="w-6 h-6" />
                 <span>Bless Forest</span>
                 <span className="text-xs">25 🐾 • Requires Happy Cat</span>
-                <span className="text-xs opacity-80">Makes all trees grow faster!</span>
+                <span className="text-xs opacity-80">Makes trees on all ground levels grow faster!</span>
               </Button>
               
               {catState.mood !== 'happy' && (

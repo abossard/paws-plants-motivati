@@ -88,17 +88,20 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
     }
   }
 
-  // Generate natural forest positions for trees
+  // Generate natural forest positions for trees in 2D side view
   const getForestPosition = (index: number, total: number) => {
     // Create a pseudo-random but consistent position based on tree ID
     const seed = trees[index]?.id ? parseInt(trees[index].id) : index
     const x = (seed * 9301 + 49297) % 233280 // Pseudo-random X position
-    const y = (seed * 4096 + 150889) % 233280 // Pseudo-random Y position
+    
+    // Create ground height variation (multiple ground levels)
+    const groundLevels = [85, 88, 82, 90, 86, 84] // Different ground heights as percentages
+    const groundLevel = groundLevels[index % groundLevels.length]
     
     return {
-      left: `${(x / 233280) * 80 + 10}%`, // 10-90% horizontal range
-      top: `${(y / 233280) * 70 + 15}%`,  // 15-85% vertical range
-      zIndex: Math.floor((y / 233280) * 10) + 1 // Layering for depth
+      left: `${(x / 233280) * 90 + 5}%`, // 5-95% horizontal range
+      bottom: `${100 - groundLevel}%`, // Trees stand on ground level
+      zIndex: index + 1 // Simple layering based on order
     }
   }
 
@@ -173,44 +176,87 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Forest Scene */}
-              <div className="relative min-h-96 bg-gradient-to-b from-sky-100 to-green-100 rounded-lg overflow-hidden border-2 border-border">
-                {/* Forest Ground */}
-                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-green-200 to-green-100"></div>
+              {/* Forest Scene - 2D Side View */}
+              <div className="relative min-h-96 bg-gradient-to-b from-sky-200 via-sky-100 to-green-50 rounded-lg overflow-hidden border-2 border-border">
+                {/* Background mountains/hills */}
+                <div className="absolute inset-0">
+                  {/* Far mountains */}
+                  <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-slate-200 to-sky-100 opacity-40"
+                       style={{
+                         clipPath: 'polygon(0% 100%, 20% 60%, 40% 70%, 60% 50%, 80% 65%, 100% 55%, 100% 100%)'
+                       }}></div>
+                  
+                  {/* Middle hills */}
+                  <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-green-200 to-green-100 opacity-60"
+                       style={{
+                         clipPath: 'polygon(0% 100%, 15% 70%, 35% 80%, 55% 65%, 75% 75%, 90% 60%, 100% 70%, 100% 100%)'
+                       }}></div>
+                </div>
+                
+                {/* Layered ground levels */}
+                <div className="absolute inset-0">
+                  {/* Ground layer 1 (furthest back) */}
+                  <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-b from-green-300 to-green-400" 
+                       style={{ bottom: '18%' }}></div>
+                  
+                  {/* Ground layer 2 */}
+                  <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-b from-green-300 to-green-500" 
+                       style={{ bottom: '12%' }}></div>
+                  
+                  {/* Ground layer 3 */}
+                  <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-b from-green-400 to-green-600" 
+                       style={{ bottom: '16%' }}></div>
+                  
+                  {/* Ground layer 4 */}
+                  <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-b from-green-300 to-green-500" 
+                       style={{ bottom: '10%' }}></div>
+                  
+                  {/* Ground layer 5 */}
+                  <div className="absolute bottom-0 left-0 w-full h-6 bg-gradient-to-b from-green-400 to-green-600" 
+                       style={{ bottom: '14%' }}></div>
+                  
+                  {/* Main ground */}
+                  <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-b from-green-400 to-green-600"></div>
+                </div>
                 
                 {/* Sun */}
-                <div className="absolute top-4 right-4 w-8 h-8 bg-yellow-300 rounded-full opacity-80"></div>
+                <div className="absolute top-6 right-8 w-12 h-12 bg-gradient-radial from-yellow-300 to-yellow-400 rounded-full opacity-80 shadow-lg shadow-yellow-200/50"></div>
                 
                 {/* Clouds */}
-                <div className="absolute top-6 left-8 w-12 h-6 bg-white rounded-full opacity-70"></div>
-                <div className="absolute top-8 left-20 w-8 h-4 bg-white rounded-full opacity-60"></div>
+                <div className="absolute top-8 left-12 w-16 h-8 bg-white rounded-full opacity-70 shadow-sm"></div>
+                <div className="absolute top-12 left-32 w-12 h-6 bg-white rounded-full opacity-60 shadow-sm"></div>
+                <div className="absolute top-6 left-1/2 w-14 h-7 bg-white rounded-full opacity-65 shadow-sm"></div>
                 
-                {/* Trees positioned naturally */}
+                {/* Trees positioned on ground levels */}
                 {trees.map((tree, index) => {
                   const position = getForestPosition(index, trees.length)
                   const stage = getGrowthStage(tree)
                   
-                  // Adjust size based on growth stage
+                  // Adjust size based on growth stage and distance (layering effect)
                   const sizeMultiplier = {
-                    seedling: 0.5,
-                    young: 0.75,
-                    mature: 1,
-                    ancient: 1.2
+                    seedling: 0.4,
+                    young: 0.6,
+                    mature: 0.8,
+                    ancient: 1.0
                   }[stage]
+                  
+                  // Make trees further back slightly smaller for depth
+                  const depthMultiplier = 1 - (index % 3) * 0.1
+                  const finalSize = sizeMultiplier * depthMultiplier
                   
                   return (
                     <motion.div
                       key={tree.id}
                       initial={{ scale: 0, y: 20 }}
                       animate={{ scale: 1, y: 0 }}
-                      transition={{ duration: 0.8, delay: index * 0.1 }}
-                      className="absolute transform -translate-x-1/2 -translate-y-full cursor-pointer group"
+                      transition={{ duration: 0.8, delay: index * 0.15 }}
+                      className="absolute transform -translate-x-1/2 cursor-pointer group"
                       style={{
                         left: position.left,
-                        top: position.top,
+                        bottom: position.bottom,
                         zIndex: position.zIndex,
-                        fontSize: `${2 + sizeMultiplier}rem`,
-                        filter: tree.catBlessings > 0 ? 'drop-shadow(0 0 8px rgba(147, 51, 234, 0.4))' : 'none'
+                        fontSize: `${1.5 + finalSize * 1.5}rem`,
+                        filter: tree.catBlessings > 0 ? 'drop-shadow(0 0 8px rgba(147, 51, 234, 0.4))' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
                       }}
                       title={`${treeTypes[tree.type].name} - ${getGrowthDescription(tree)}`}
                     >
@@ -221,11 +267,16 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
                         </div>
                         
                         {/* Hover tooltip */}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-card border rounded shadow-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
-                          <div className="font-medium">{treeTypes[tree.type].name}</div>
-                          <div className="text-muted-foreground text-xs">
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-card border rounded-lg shadow-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 max-w-48">
+                          <div className="font-medium text-center">{treeTypes[tree.type].name}</div>
+                          <div className="text-muted-foreground text-xs text-center">
                             {getGrowthDescription(tree)}
                           </div>
+                          {tree.catBlessings > 0 && (
+                            <div className="text-purple-600 text-xs text-center mt-1">
+                              ✨ Cat blessed ✨
+                            </div>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -233,54 +284,94 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
                 })}
                 
                 {/* Forest ambiance elements */}
-                {trees.length > 3 && (
+                {trees.length > 2 && (
                   <>
-                    {/* Birds */}
+                    {/* Flying birds */}
                     <motion.div
-                      className="absolute text-xs"
-                      initial={{ x: -20, y: 40 }}
-                      animate={{ x: 300, y: 30 }}
-                      transition={{ duration: 15, repeat: Infinity, repeatType: "reverse" }}
-                      style={{ top: '20%', left: '10%' }}
+                      className="absolute text-sm"
+                      initial={{ x: -40, y: 60 }}
+                      animate={{ x: 400, y: 40 }}
+                      transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
+                      style={{ top: '15%' }}
                     >
-                      🦅
+                      🕊️
                     </motion.div>
                     
-                    {/* Butterflies */}
+                    {/* Small bird in trees */}
+                    {trees.length > 4 && (
+                      <motion.div
+                        className="absolute text-xs"
+                        animate={{ x: [0, 5, -3, 2, 0], y: [0, -2, 1, -1, 0] }}
+                        transition={{ duration: 6, repeat: Infinity }}
+                        style={{ top: '35%', left: '70%', zIndex: 20 }}
+                      >
+                        🐦
+                      </motion.div>
+                    )}
+                    
+                    {/* Butterflies near flowers */}
                     <motion.div
                       className="absolute text-xs"
                       initial={{ x: 0, y: 0 }}
-                      animate={{ x: [0, 20, -10, 15, 0], y: [0, -10, 5, -5, 0] }}
-                      transition={{ duration: 8, repeat: Infinity }}
-                      style={{ top: '40%', right: '30%' }}
+                      animate={{ x: [0, 15, -8, 12, 0], y: [0, -8, 3, -4, 0] }}
+                      transition={{ duration: 10, repeat: Infinity }}
+                      style={{ bottom: '25%', left: '25%' }}
                     >
                       🦋
                     </motion.div>
                   </>
                 )}
                 
-                {/* Ancient forest mystical elements */}
+                {/* Mystical elements for ancient trees */}
                 {trees.some(tree => getGrowthStage(tree) === 'ancient') && (
-                  <motion.div
-                    className="absolute text-xs opacity-70"
-                    animate={{ opacity: [0.3, 0.8, 0.3] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    style={{ top: '25%', left: '60%' }}
-                  >
-                    ✨
-                  </motion.div>
+                  <>
+                    <motion.div
+                      className="absolute text-sm opacity-70"
+                      animate={{ opacity: [0.4, 0.9, 0.4], scale: [1, 1.1, 1] }}
+                      transition={{ duration: 4, repeat: Infinity }}
+                      style={{ top: '20%', left: '15%' }}
+                    >
+                      ✨
+                    </motion.div>
+                    <motion.div
+                      className="absolute text-xs opacity-60"
+                      animate={{ opacity: [0.3, 0.8, 0.3], y: [0, -5, 0] }}
+                      transition={{ duration: 6, repeat: Infinity, delay: 2 }}
+                      style={{ top: '30%', right: '20%' }}
+                    >
+                      🌟
+                    </motion.div>
+                  </>
+                )}
+                
+                {/* Grass and small plants at ground level */}
+                {trees.length > 1 && (
+                  <div className="absolute bottom-0 left-0 w-full h-4 flex items-end justify-around opacity-60">
+                    <span className="text-xs">🌱</span>
+                    <span className="text-xs">🍄</span>
+                    <span className="text-xs">🌿</span>
+                    <span className="text-xs">🌸</span>
+                    <span className="text-xs">🌱</span>
+                    <span className="text-xs">🌿</span>
+                  </div>
                 )}
               </div>
               
               <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                 <div className="text-sm text-center text-muted-foreground">
-                  🌟 Your forest has <strong>{trees.length}</strong> tree{trees.length !== 1 ? 's' : ''}! 
-                  Trees grow and change over time as you continue your journey.
-                  {trees.length > 0 && <div className="mt-1 text-xs">💡 Hover over trees to see their details</div>}
+                  🌟 Your forest has <strong>{trees.length}</strong> tree{trees.length !== 1 ? 's' : ''} growing on different ground levels! 
+                  <div className="mt-1">Trees grow and change over time as you continue your journey.</div>
+                  {trees.length > 0 && <div className="mt-1 text-xs">💡 Hover over trees to see their details and growth progress</div>}
                   
                   {trees.some(tree => tree.catBlessings > 0) && (
                     <div className="mt-2 text-xs text-purple-600 font-medium">
                       ✨ Some trees have been blessed by your cat and are growing faster! ✨
+                    </div>
+                  )}
+                  
+                  {trees.length >= 5 && (
+                    <div className="mt-2 text-xs text-green-600 font-medium">
+                      🌲 Your forest is becoming a thriving ecosystem with wildlife! 🦋
                     </div>
                   )}
                 </div>
