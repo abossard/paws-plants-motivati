@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
@@ -22,6 +22,10 @@ export interface Tree {
   plantedAt: number
   growth: number
   catBlessings: number
+  position?: {
+    x: number // Percentage from left (0-100)
+    y: number // Percentage from bottom (0-100)
+  }
 }
 
 export interface CatState {
@@ -43,6 +47,30 @@ function App() {
     blessingsGiven: 0,
     lastBlessing: 0
   })
+
+  // Migrate existing trees to have position data
+  useEffect(() => {
+    setTrees(currentTrees => 
+      currentTrees.map((tree, index) => {
+        if (!tree.position) {
+          // Generate default position for existing trees
+          const seed = parseInt(tree.id) || index
+          const x = (seed * 9301 + 49297) % 233280
+          const groundLevels = [15, 18, 12, 20, 16, 14]
+          const groundLevel = groundLevels[index % groundLevels.length]
+          
+          return {
+            ...tree,
+            position: {
+              x: (x / 233280) * 80 + 10, // 10-90% horizontal range
+              y: groundLevel // Ground level from bottom
+            }
+          }
+        }
+        return tree
+      })
+    )
+  }, [])
 
   const completeTask = (taskId: string) => {
     setTasks(currentTasks => 
@@ -74,17 +102,32 @@ function App() {
   const plantTree = (type: Tree['type']) => {
     const cost = getTreeCost(type)
     if (spendPoints(cost)) {
+      // Generate random position for new tree
+      const randomX = Math.random() * 80 + 10 // 10-90% from left
+      const randomY = Math.random() * 20 + 10 // 10-30% from bottom
+      
       const newTree: Tree = {
         id: Date.now().toString(),
         type,
         plantedAt: Date.now(),
         growth: 0,
-        catBlessings: 0
+        catBlessings: 0,
+        position: { x: randomX, y: randomY }
       }
       setTrees(currentTrees => [...currentTrees, newTree])
       return true
     }
     return false
+  }
+
+  const updateTreePosition = (treeId: string, x: number, y: number) => {
+    setTrees(currentTrees => 
+      currentTrees.map(tree => 
+        tree.id === treeId 
+          ? { ...tree, position: { x, y } }
+          : tree
+      )
+    )
   }
 
   const careCat = (action: 'feed' | 'play') => {
@@ -183,6 +226,7 @@ function App() {
               trees={trees}
               pawPoints={pawPoints}
               onPlantTree={plantTree}
+              onUpdateTreePosition={updateTreePosition}
               getTreeCost={getTreeCost}
             />
           </TabsContent>

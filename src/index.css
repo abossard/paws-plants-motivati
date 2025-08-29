@@ -22,6 +22,11 @@
   }
 }
 
+/* Custom gradient for sun */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-from), var(--tw-gradient-to));
+}
+
 :root {
   --background: oklch(0.97 0.01 85);
   --foreground: oklch(0.25 0.08 85);
