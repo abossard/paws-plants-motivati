@@ -20,7 +20,7 @@ export interface Task {
 
 export interface Tree {
   id: string
-  type: 'oak' | 'pine' | 'cherry' | 'willow'
+  type: 'oak' | 'pine' | 'cherry' | 'willow' | 'maple' | 'birch' | 'cypress' | 'bamboo'
   plantedAt: number
   growth: number
   catBlessings: number
@@ -356,7 +356,16 @@ function App() {
   }
 
   const getTreeCost = (type: Tree['type']) => {
-    const costs = { oak: 25, pine: 20, cherry: 35, willow: 30 }
+    const costs = { 
+      oak: 25, 
+      pine: 20, 
+      cherry: 35, 
+      willow: 30,
+      maple: 40,
+      birch: 28,
+      cypress: 45,
+      bamboo: 22
+    }
     return costs[type]
   }
 

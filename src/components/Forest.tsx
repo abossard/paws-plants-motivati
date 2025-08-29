@@ -21,7 +21,11 @@ const treeTypes = {
   oak: { emoji: '🌳', name: 'Oak Tree', description: 'Strong and enduring' },
   pine: { emoji: '🌲', name: 'Pine Tree', description: 'Evergreen and resilient' },
   cherry: { emoji: '🌸', name: 'Cherry Tree', description: 'Beautiful and delicate' },
-  willow: { emoji: '🌿', name: 'Willow Tree', description: 'Graceful and flexible' }
+  willow: { emoji: '🌿', name: 'Willow Tree', description: 'Graceful and flexible' },
+  maple: { emoji: '🍁', name: 'Maple Tree', description: 'Vibrant autumn beauty' },
+  birch: { emoji: '🌳', name: 'Birch Tree', description: 'Elegant white bark' },
+  cypress: { emoji: '🌲', name: 'Cypress Tree', description: 'Tall and majestic' },
+  bamboo: { emoji: '🎋', name: 'Bamboo Grove', description: 'Fast-growing and zen' }
 }
 
 const weatherEffects = {
@@ -227,7 +231,11 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
     
     switch (stage) {
       case 'seedling': return isBlessed ? '🌱✨' : '🌱'
-      case 'young': return isBlessed ? (tree.type === 'cherry' ? '🌸✨' : '🌿✨') : (tree.type === 'cherry' ? '🌸' : '🌿')
+      case 'young': 
+        if (tree.type === 'cherry') return isBlessed ? '🌸✨' : '🌸'
+        if (tree.type === 'maple') return isBlessed ? '🍂✨' : '🍂'
+        if (tree.type === 'bamboo') return isBlessed ? '🎍✨' : '🎍'
+        return isBlessed ? '🌿✨' : '🌿'
       case 'mature': return isBlessed ? baseEmoji + '✨' : baseEmoji
       case 'ancient': return isBlessed ? baseEmoji + '🌟' : baseEmoji + '✨'
       default: return baseEmoji
@@ -319,7 +327,7 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
             {Object.entries(treeTypes).map(([type, info]) => {
               const cost = getTreeCost(type as Tree['type'])
               const canAfford = pawPoints >= cost
