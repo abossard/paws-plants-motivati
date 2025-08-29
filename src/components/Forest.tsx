@@ -235,7 +235,6 @@ export default function Forest({
     const stage = getGrowthStage(tree)
     const baseEmoji = treeTypes[tree.type].emoji
     const isBlessed = tree.catBlessings > 0
-    const hasFruit = tree.fruitCount && tree.fruitCount > 0
     
     let display = ''
     
@@ -259,12 +258,21 @@ export default function Forest({
         display = baseEmoji
     }
     
-    // Add fruit indicators for mature/ancient trees
-    if (hasFruit && (stage === 'mature' || stage === 'ancient')) {
-      display += '🍎'.repeat(Math.min(tree.fruitCount || 0, 3))
-    }
-    
     return display
+  }
+
+  const getFruitIcon = (treeType: Tree['type']) => {
+    const fruitIcons = {
+      oak: '🌰',
+      pine: '🌰',
+      cherry: '🍒',
+      willow: '🍃',
+      maple: '🍯',
+      birch: '💧',
+      cypress: '🫒',
+      bamboo: '🎋'
+    }
+    return fruitIcons[treeType]
   }
 
   const getGrowthDescription = (tree: Tree) => {
@@ -576,6 +584,27 @@ export default function Forest({
                         }`}>
                           {getTreeDisplay(tree)}
                         </div>
+                        
+                        {/* Fruit icons beside tree - only for mature/ancient trees with fruits */}
+                        {tree.fruitCount && tree.fruitCount > 0 && (stage === 'mature' || stage === 'ancient') && (
+                          <div className="absolute top-0 -right-6 flex flex-col items-center">
+                            {Array.from({ length: Math.min(tree.fruitCount, 3) }).map((_, i) => (
+                              <motion.div
+                                key={`fruit-${i}`}
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: i * 0.2, duration: 0.3 }}
+                                className="text-xs mb-0.5"
+                                style={{ 
+                                  fontSize: '0.75rem',
+                                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))'
+                                }}
+                              >
+                                {getFruitIcon(tree.type)}
+                              </motion.div>
+                            ))}
+                          </div>
+                        )}
                         
                         {/* Drag indicator */}
                         {isDragging && (
