@@ -3,12 +3,13 @@ import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CheckSquare, TreePine, Heart, ShoppingBag } from '@phosphor-icons/react'
+import { CheckSquare, TreePine, Heart, ShoppingBag, Star } from '@phosphor-icons/react'
 import { Toaster } from '@/components/ui/sonner'
 import TaskManager from '@/components/TaskManager'
 import CatAvatar from '@/components/CatAvatar'
 import CatShop from '@/components/CatShop'
 import Forest from '@/components/Forest'
+import ItemShowcase from '@/components/ItemShowcase'
 
 export interface Task {
   id: string
@@ -737,7 +738,7 @@ function App() {
         </header>
 
         <Tabs defaultValue="tasks" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8 bg-sky-200">
+          <TabsList className="grid w-full grid-cols-5 mb-8 bg-sky-200">
             <TabsTrigger value="tasks" className="flex items-center gap-2 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 data-[state=active]:border-blue-300 bg-sky-100 text-sky-700">
               <CheckSquare className="w-4 h-4" />
               Tasks
@@ -749,6 +750,10 @@ function App() {
             <TabsTrigger value="shop" className="flex items-center gap-2 data-[state=active]:bg-red-100 data-[state=active]:text-red-700 data-[state=active]:border-red-300 bg-sky-100 text-sky-700">
               <ShoppingBag className="w-4 h-4" />
               Shop
+            </TabsTrigger>
+            <TabsTrigger value="showcase" className="flex items-center gap-2 data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 data-[state=active]:border-purple-300 bg-sky-100 text-sky-700">
+              <Star className="w-4 h-4" />
+              Collection
             </TabsTrigger>
             <TabsTrigger value="forest" className="flex items-center gap-2 data-[state=active]:bg-green-100 data-[state=active]:text-green-700 data-[state=active]:border-green-300 bg-sky-100 text-sky-700">
               <TreePine className="w-4 h-4" />
@@ -783,6 +788,15 @@ function App() {
               catInventory={catInventory}
               onBuyItem={buyItem}
               shopItems={SHOP_ITEMS}
+            />
+          </TabsContent>
+
+          <TabsContent value="showcase">
+            <ItemShowcase 
+              catInventory={catInventory}
+              fruitInventory={fruitInventory}
+              onUseItem={useItem}
+              onConsumeFruit={consumeFruit}
             />
           </TabsContent>
 
