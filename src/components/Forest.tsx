@@ -81,6 +81,20 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
     }
   }
 
+  // Generate natural forest positions for trees
+  const getForestPosition = (index: number, total: number) => {
+    // Create a pseudo-random but consistent position based on tree ID
+    const seed = trees[index]?.id ? parseInt(trees[index].id) : index
+    const x = (seed * 9301 + 49297) % 233280 // Pseudo-random X position
+    const y = (seed * 4096 + 150889) % 233280 // Pseudo-random Y position
+    
+    return {
+      left: `${(x / 233280) * 80 + 10}%`, // 10-90% horizontal range
+      top: `${(y / 233280) * 70 + 15}%`,  // 15-85% vertical range
+      zIndex: Math.floor((y / 233280) * 10) + 1 // Layering for depth
+    }
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -152,30 +166,109 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-                {trees.map((tree) => (
+              {/* Forest Scene */}
+              <div className="relative min-h-96 bg-gradient-to-b from-sky-100 to-green-100 rounded-lg overflow-hidden border-2 border-border">
+                {/* Forest Ground */}
+                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-green-200 to-green-100"></div>
+                
+                {/* Sun */}
+                <div className="absolute top-4 right-4 w-8 h-8 bg-yellow-300 rounded-full opacity-80"></div>
+                
+                {/* Clouds */}
+                <div className="absolute top-6 left-8 w-12 h-6 bg-white rounded-full opacity-70"></div>
+                <div className="absolute top-8 left-20 w-8 h-4 bg-white rounded-full opacity-60"></div>
+                
+                {/* Trees positioned naturally */}
+                {trees.map((tree, index) => {
+                  const position = getForestPosition(index, trees.length)
+                  const stage = getGrowthStage(tree)
+                  
+                  // Adjust size based on growth stage
+                  const sizeMultiplier = {
+                    seedling: 0.5,
+                    young: 0.75,
+                    mature: 1,
+                    ancient: 1.2
+                  }[stage]
+                  
+                  return (
+                    <motion.div
+                      key={tree.id}
+                      initial={{ scale: 0, y: 20 }}
+                      animate={{ scale: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: index * 0.1 }}
+                      className="absolute transform -translate-x-1/2 -translate-y-full cursor-pointer group"
+                      style={{
+                        left: position.left,
+                        top: position.top,
+                        zIndex: position.zIndex,
+                        fontSize: `${2 + sizeMultiplier}rem`
+                      }}
+                      title={`${treeTypes[tree.type].name} - ${getGrowthDescription(tree)}`}
+                    >
+                      <div className="relative">
+                        {/* Tree */}
+                        <div className="transform hover:scale-110 transition-transform duration-200">
+                          {getTreeDisplay(tree)}
+                        </div>
+                        
+                        {/* Hover tooltip */}
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-card border rounded shadow-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
+                          <div className="font-medium">{treeTypes[tree.type].name}</div>
+                          <div className="text-muted-foreground text-xs">
+                            {getGrowthDescription(tree)}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                })}
+                
+                {/* Forest ambiance elements */}
+                {trees.length > 3 && (
+                  <>
+                    {/* Birds */}
+                    <motion.div
+                      className="absolute text-xs"
+                      initial={{ x: -20, y: 40 }}
+                      animate={{ x: 300, y: 30 }}
+                      transition={{ duration: 15, repeat: Infinity, repeatType: "reverse" }}
+                      style={{ top: '20%', left: '10%' }}
+                    >
+                      🦅
+                    </motion.div>
+                    
+                    {/* Butterflies */}
+                    <motion.div
+                      className="absolute text-xs"
+                      initial={{ x: 0, y: 0 }}
+                      animate={{ x: [0, 20, -10, 15, 0], y: [0, -10, 5, -5, 0] }}
+                      transition={{ duration: 8, repeat: Infinity }}
+                      style={{ top: '40%', right: '30%' }}
+                    >
+                      🦋
+                    </motion.div>
+                  </>
+                )}
+                
+                {/* Ancient forest mystical elements */}
+                {trees.some(tree => getGrowthStage(tree) === 'ancient') && (
                   <motion.div
-                    key={tree.id}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="text-center"
+                    className="absolute text-xs opacity-70"
+                    animate={{ opacity: [0.3, 0.8, 0.3] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    style={{ top: '25%', left: '60%' }}
                   >
-                    <div className="text-4xl mb-2">{getTreeDisplay(tree)}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {treeTypes[tree.type].name}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {getGrowthDescription(tree)}
-                    </div>
+                    ✨
                   </motion.div>
-                ))}
+                )}
               </div>
               
               <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                 <div className="text-sm text-center text-muted-foreground">
                   🌟 Your forest has <strong>{trees.length}</strong> tree{trees.length !== 1 ? 's' : ''}! 
                   Trees grow and change over time as you continue your journey.
+                  {trees.length > 0 && <div className="mt-1 text-xs">💡 Hover over trees to see their details</div>}
                 </div>
               </div>
             </div>
