@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, Sparkle, CaretDown, CaretRight } from '@phosphor-icons/react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Plus, Sparkle, CaretDown, CaretRight, DotsThree, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { Task } from '@/App'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -11,6 +17,7 @@ interface TaskManagerProps {
   tasks: Task[]
   onAddTask: (text: string, parentId?: string) => void
   onCompleteTask: (taskId: string) => void
+  onUncompleteTask: (taskId: string) => void
 }
 
 interface TaskItemProps {
@@ -18,10 +25,11 @@ interface TaskItemProps {
   subtasks: Task[]
   onAddSubtask: (parentId: string, text: string) => void
   onCompleteTask: (taskId: string) => void
+  onUncompleteTask: (taskId: string) => void
   level?: number
 }
 
-function TaskItem({ task, subtasks, onAddSubtask, onCompleteTask, level = 0 }: TaskItemProps) {
+function TaskItem({ task, subtasks, onAddSubtask, onCompleteTask, onUncompleteTask, level = 0 }: TaskItemProps) {
   const [showSubtasks, setShowSubtasks] = useState(true)
   const [showAddSubtask, setShowAddSubtask] = useState(false)
   const [subtaskText, setSubtaskText] = useState('')
@@ -58,7 +66,13 @@ function TaskItem({ task, subtasks, onAddSubtask, onCompleteTask, level = 0 }: T
         <Checkbox
           id={task.id}
           checked={task.completed}
-          onCheckedChange={() => onCompleteTask(task.id)}
+          onCheckedChange={(checked) => {
+            if (checked) {
+              onCompleteTask(task.id)
+            } else {
+              onUncompleteTask(task.id)
+            }
+          }}
         />
         
         <div className="flex-1 flex items-center gap-2">
@@ -77,14 +91,28 @@ function TaskItem({ task, subtasks, onAddSubtask, onCompleteTask, level = 0 }: T
             </Button>
           )}
           
-          <label 
-            htmlFor={task.id}
-            className={`text-sm font-medium cursor-pointer flex-1 ${
-              task.completed ? 'line-through opacity-60' : ''
-            }`}
-          >
-            {task.text}
-          </label>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className={`text-sm font-medium cursor-pointer flex-1 hover:bg-muted/30 rounded px-2 py-1 transition-colors ${
+                task.completed ? 'line-through opacity-60' : ''
+              }`}>
+                {task.text}
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {task.completed ? (
+                <DropdownMenuItem onClick={() => onUncompleteTask(task.id)}>
+                  <ArrowCounterClockwise className="w-4 h-4 mr-2" />
+                  Move back to today's tasks
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={() => setShowAddSubtask(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add subtask
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           {totalSubtasks > 0 && (
             <span className="text-xs text-muted-foreground">
@@ -158,6 +186,7 @@ function TaskItem({ task, subtasks, onAddSubtask, onCompleteTask, level = 0 }: T
                 subtasks={[]} // Subtasks don't have their own subtasks for now
                 onAddSubtask={onAddSubtask}
                 onCompleteTask={onCompleteTask}
+                onUncompleteTask={onUncompleteTask}
                 level={level + 1}
               />
             ))}
@@ -168,7 +197,7 @@ function TaskItem({ task, subtasks, onAddSubtask, onCompleteTask, level = 0 }: T
   )
 }
 
-export default function TaskManager({ tasks, onAddTask, onCompleteTask }: TaskManagerProps) {
+export default function TaskManager({ tasks, onAddTask, onCompleteTask, onUncompleteTask }: TaskManagerProps) {
   const [newTaskText, setNewTaskText] = useState('')
   const [showCompleted, setShowCompleted] = useState(false)
 
@@ -264,6 +293,7 @@ export default function TaskManager({ tasks, onAddTask, onCompleteTask }: TaskMa
                     subtasks={getSubtasks(task.id)}
                     onAddSubtask={handleAddSubtask}
                     onCompleteTask={handleCompleteTask}
+                    onUncompleteTask={onUncompleteTask}
                   />
                 ))}
               </AnimatePresence>
@@ -305,6 +335,7 @@ export default function TaskManager({ tasks, onAddTask, onCompleteTask }: TaskMa
                         subtasks={getSubtasks(task.id)}
                         onAddSubtask={handleAddSubtask}
                         onCompleteTask={handleCompleteTask}
+                        onUncompleteTask={onUncompleteTask}
                       />
                     ))}
                   </div>

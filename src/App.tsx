@@ -181,6 +181,34 @@ function App() {
     setPawPoints(current => current + 10)
   }
 
+  const uncompleteTask = (taskId: string) => {
+    setTasks(currentTasks => {
+      const updatedTasks = currentTasks.map(task => 
+        task.id === taskId ? { ...task, completed: false } : task
+      )
+      
+      // If uncompleting a parent task, uncomplete all its subtasks
+      const uncomplotedTask = updatedTasks.find(t => t.id === taskId)
+      if (uncomplotedTask && !uncomplotedTask.parentId) {
+        const subtasks = updatedTasks.filter(t => t.parentId === taskId)
+        return updatedTasks.map(task => 
+          subtasks.some(st => st.id === task.id) 
+            ? { ...task, completed: false } 
+            : task
+        )
+      }
+      
+      // If uncompleting a subtask, uncomplete the parent task too
+      if (uncomplotedTask?.parentId) {
+        return updatedTasks.map(task =>
+          task.id === uncomplotedTask.parentId ? { ...task, completed: false } : task
+        )
+      }
+      
+      return updatedTasks
+    })
+  }
+
   const addTask = (text: string, parentId?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
@@ -373,6 +401,7 @@ function App() {
               tasks={tasks}
               onAddTask={addTask}
               onCompleteTask={completeTask}
+              onUncompleteTask={uncompleteTask}
             />
           </TabsContent>
 
