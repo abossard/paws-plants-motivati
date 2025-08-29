@@ -400,7 +400,8 @@ function App() {
     // Cat blessings accelerate growth (each blessing reduces required time by 20%)
     const accelerationFactor = 1 - (tree.catBlessings * 0.2)
     
-    const adjustedDays = daysSincePlanted / Math.max(accelerationFactor, 0.3)
+    // 5x faster growth speed
+    const adjustedDays = (daysSincePlanted * 5) / Math.max(accelerationFactor, 0.3)
     
     if (adjustedDays < 1) return 'seedling'
     if (adjustedDays < 3) return 'young'
