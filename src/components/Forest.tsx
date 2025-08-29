@@ -2,17 +2,21 @@ import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { TreePine, Sparkle, Hand, Cloud, Sun, CloudRain, CloudSnow } from '@phosphor-icons/react'
-import { Tree } from '@/App'
+import { TreePine, Sparkle, Hand, Cloud, Sun, CloudRain, CloudSnow, Fruit, Package } from '@phosphor-icons/react'
+import { Tree, FruitInventory, FruitItem } from '@/App'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
 interface ForestProps {
   trees: Tree[]
   pawPoints: number
+  fruitInventory: FruitInventory
   onPlantTree: (type: Tree['type']) => boolean
   onUpdateTreePosition: (treeId: string, x: number, y: number) => void
+  onHarvestFruit: (treeId: string) => { fruits: FruitItem[], totalValue: number } | false
+  onConsumeFruit: (fruitId: string) => boolean
   getTreeCost: (type: Tree['type']) => number
+  getGrowthStage: (tree: Tree) => 'seedling' | 'young' | 'mature' | 'ancient'
 }
 
 type WeatherType = 'sunny' | 'cloudy' | 'rainy' | 'snowy'
@@ -55,7 +59,17 @@ const weatherEffects = {
   }
 }
 
-export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosition, getTreeCost }: ForestProps) {
+export default function Forest({ 
+  trees, 
+  pawPoints, 
+  fruitInventory, 
+  onPlantTree, 
+  onUpdateTreePosition, 
+  onHarvestFruit, 
+  onConsumeFruit, 
+  getTreeCost,
+  getGrowthStage
+}: ForestProps) {
   const [selectedType, setSelectedType] = useState<Tree['type'] | null>(null)
   const [draggedTree, setDraggedTree] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
@@ -206,52 +220,64 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
     }
   }
 
-  const getGrowthStage = (tree: Tree) => {
-    const daysSincePlanted = (Date.now() - tree.plantedAt) / (1000 * 60 * 60 * 24)
-    
-    // Cat blessings accelerate growth (each blessing reduces required time by 20%)
-    const accelerationFactor = 1 - (tree.catBlessings * 0.2)
-    
-    // Weather affects growth: rain speeds it up, snow slows it down
-    const weatherMultiplier = currentWeather === 'rainy' ? 0.8 : 
-                             currentWeather === 'snowy' ? 1.3 : 1.0
-    
-    const adjustedDays = (daysSincePlanted * weatherMultiplier) / Math.max(accelerationFactor, 0.3)
-    
-    if (adjustedDays < 1) return 'seedling'
-    if (adjustedDays < 3) return 'young'
-    if (adjustedDays < 7) return 'mature'
-    return 'ancient'
+  const handleHarvestFruit = (treeId: string) => {
+    const result = onHarvestFruit(treeId)
+    if (result) {
+      const { fruits, totalValue } = result
+      const fruitNames = fruits.map(f => f.name).join(', ')
+      toast.success(`🍎 Harvested: ${fruitNames}! (+${totalValue} Paw Points)`)
+    } else {
+      toast.error('No fruits to harvest on this tree!')
+    }
   }
 
   const getTreeDisplay = (tree: Tree) => {
     const stage = getGrowthStage(tree)
     const baseEmoji = treeTypes[tree.type].emoji
     const isBlessed = tree.catBlessings > 0
+    const hasFruit = tree.fruitCount && tree.fruitCount > 0
+    
+    let display = ''
     
     switch (stage) {
-      case 'seedling': return isBlessed ? '🌱✨' : '🌱'
+      case 'seedling': 
+        display = isBlessed ? '🌱✨' : '🌱'
+        break
       case 'young': 
-        if (tree.type === 'cherry') return isBlessed ? '🌸✨' : '🌸'
-        if (tree.type === 'maple') return isBlessed ? '🍂✨' : '🍂'
-        if (tree.type === 'bamboo') return isBlessed ? '🎍✨' : '🎍'
-        return isBlessed ? '🌿✨' : '🌿'
-      case 'mature': return isBlessed ? baseEmoji + '✨' : baseEmoji
-      case 'ancient': return isBlessed ? baseEmoji + '🌟' : baseEmoji + '✨'
-      default: return baseEmoji
+        if (tree.type === 'cherry') display = isBlessed ? '🌸✨' : '🌸'
+        else if (tree.type === 'maple') display = isBlessed ? '🍂✨' : '🍂'
+        else if (tree.type === 'bamboo') display = isBlessed ? '🎍✨' : '🎍'
+        else display = isBlessed ? '🌿✨' : '🌿'
+        break
+      case 'mature': 
+        display = isBlessed ? baseEmoji + '✨' : baseEmoji
+        break
+      case 'ancient': 
+        display = isBlessed ? baseEmoji + '🌟' : baseEmoji + '✨'
+        break
+      default: 
+        display = baseEmoji
     }
+    
+    // Add fruit indicators for mature/ancient trees
+    if (hasFruit && (stage === 'mature' || stage === 'ancient')) {
+      display += '🍎'.repeat(Math.min(tree.fruitCount || 0, 3))
+    }
+    
+    return display
   }
 
   const getGrowthDescription = (tree: Tree) => {
     const stage = getGrowthStage(tree)
     const daysSincePlanted = Math.floor((Date.now() - tree.plantedAt) / (1000 * 60 * 60 * 24))
     const blessingsText = tree.catBlessings > 0 ? ` (${tree.catBlessings} cat blessing${tree.catBlessings > 1 ? 's' : ''})` : ''
+    const fruitText = tree.fruitCount && tree.fruitCount > 0 ? ` - ${tree.fruitCount} fruit${tree.fruitCount > 1 ? 's' : ''} ready!` : ''
     
     switch (stage) {
       case 'seedling': return `Just sprouted ${daysSincePlanted === 0 ? 'today' : `${daysSincePlanted} day(s) ago`}${blessingsText}`
       case 'young': return `Growing strong (${daysSincePlanted} days old)${blessingsText}`
-      case 'mature': return `Fully grown (${daysSincePlanted} days old)${blessingsText}`
-      case 'ancient': return `Ancient and wise (${daysSincePlanted} days old)${blessingsText}`
+      case 'mature': return `Fully grown (${daysSincePlanted} days old)${blessingsText}${fruitText}`
+      case 'ancient': return `Ancient and wise (${daysSincePlanted} days old)${blessingsText}${fruitText}`
       default: return 'Growing...'
     }
   }
@@ -574,6 +600,20 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
                                 ✨ Cat blessed ✨
                               </div>
                             )}
+                            {tree.fruitCount && tree.fruitCount > 0 && (stage === 'mature' || stage === 'ancient') && (
+                              <div className="text-center mt-1 border-t pt-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleHarvestFruit(tree.id)
+                                  }}
+                                  className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition-colors"
+                                >
+                                  <Fruit className="w-3 h-3 inline mr-1" />
+                                  Harvest ({tree.fruitCount})
+                                </button>
+                              </div>
+                            )}
                             <div className="text-muted-foreground text-xs text-center mt-1 border-t pt-1">
                               <Hand className="w-3 h-3 inline mr-1" />
                               Click and drag to move
@@ -679,6 +719,12 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
                         </div>
                       )}
                       
+                      {trees.some(tree => getGrowthStage(tree) === 'mature' || getGrowthStage(tree) === 'ancient') && (
+                        <div className="mt-2 text-xs text-green-600 font-medium">
+                          🍎 Mature trees produce special fruits that you can harvest for extra rewards!
+                        </div>
+                      )}
+                      
                       {trees.some(tree => tree.catBlessings > 0) && (
                         <div className="mt-2 text-xs text-purple-600 font-medium">
                           ✨ Some trees have been blessed by your cat and are growing faster! ✨
@@ -717,6 +763,64 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
             </div>
         </CardContent>
       </Card>
+
+      {/* Fruit Inventory */}
+      {Object.keys(fruitInventory).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5 text-accent" />
+              Fruit Collection
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Object.entries(fruitInventory)
+                .filter(([_, item]) => item.quantity > 0)
+                .map(([fruitId, item]) => (
+                  <motion.div
+                    key={fruitId}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Card className="cursor-pointer hover:shadow-md transition-all">
+                      <CardContent className="p-4 text-center space-y-2">
+                        <div className="text-2xl">{item.fruit.icon}</div>
+                        <div className="text-sm font-medium">{item.fruit.name}</div>
+                        <div className="text-xs text-muted-foreground">{item.fruit.description}</div>
+                        <div className="flex items-center justify-center gap-2">
+                          <Badge 
+                            variant={item.fruit.rarity === 'legendary' ? 'default' : 
+                                   item.fruit.rarity === 'rare' ? 'secondary' : 'outline'}
+                            className="text-xs"
+                          >
+                            {item.fruit.rarity}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {item.quantity}x
+                          </Badge>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full text-xs"
+                          onClick={() => {
+                            const success = onConsumeFruit(fruitId)
+                            if (success) {
+                              toast.success(`🍎 Enjoyed ${item.fruit.name}! (+${item.fruit.value} Paw Points)`)
+                            }
+                          }}
+                        >
+                          Consume (+{item.fruit.value} 🐾)
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

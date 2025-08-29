@@ -42,10 +42,15 @@
 - **Why it matters**: Provides long-term visual representation of productivity progress in an immersive forest landscape
 - **Success criteria**: Varied tree types on different terrain heights, realistic growth progression, beautiful layered forest visualization with depth and natural elements
 
+### Fruit Production & Harvesting System
+- **What it does**: Mature and ancient trees produce special fruits and items that can be harvested for immediate Paw Points and bonus effects
+- **Why it matters**: Adds ongoing rewards to long-term tree investments, creates additional strategic depth through resource management, and provides variety through different fruit types with different rarities
+- **Success criteria**: Clear visual fruit indicators on trees, satisfying harvest interactions, meaningful fruit variety (common/rare/legendary), balanced reward economy, special effect applications
+
 ### Point Economy
-- **What it does**: Paw Points earned from task completion can be spent on cat care (10 points for feeding, 5 for playing), tree planting (20-35 points), forest blessings (25 points, discounted to 20 with Magical Collar), or cat shop items (12-75 points)
-- **Why it matters**: Creates meaningful choices and resource management with multiple investment paths
-- **Success criteria**: Balanced costs that encourage diverse interactions and provide both immediate gratification and long-term goals
+- **What it does**: Paw Points earned from task completion (10 points per task) and fruit consumption can be spent on cat care (10 points for feeding, 5 for playing), tree planting (20-45 points), forest blessings (25 points, discounted to 20 with Magical Collar), or cat shop items (12-75 points)
+- **Why it matters**: Creates meaningful choices and resource management with multiple investment paths including immediate gratification and long-term investments
+- **Success criteria**: Balanced costs that encourage diverse interactions, fruit values that reward patience, and multiple viable strategies for point spending
 
 ## Design Direction
 
