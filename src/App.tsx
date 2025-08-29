@@ -21,12 +21,15 @@ export interface Tree {
   type: 'oak' | 'pine' | 'cherry' | 'willow'
   plantedAt: number
   growth: number
+  catBlessings: number
 }
 
 export interface CatState {
   mood: 'happy' | 'neutral' | 'sad'
   lastFed: number
   lastPlayed: number
+  blessingsGiven: number
+  lastBlessing: number
 }
 
 function App() {
@@ -36,7 +39,9 @@ function App() {
   const [catState, setCatState] = useKV<CatState>("cat-state", {
     mood: 'neutral',
     lastFed: Date.now(),
-    lastPlayed: Date.now()
+    lastPlayed: Date.now(),
+    blessingsGiven: 0,
+    lastBlessing: 0
   })
 
   const completeTask = (taskId: string) => {
@@ -73,7 +78,8 @@ function App() {
         id: Date.now().toString(),
         type,
         plantedAt: Date.now(),
-        growth: 0
+        growth: 0,
+        catBlessings: 0
       }
       setTrees(currentTrees => [...currentTrees, newTree])
       return true
@@ -90,6 +96,29 @@ function App() {
         [action === 'feed' ? 'lastFed' : 'lastPlayed']: Date.now()
       }))
       return true
+    }
+    return false
+  }
+
+  const blessForest = () => {
+    const cost = 25
+    if (pawPoints >= cost && catState.mood === 'happy') {
+      if (spendPoints(cost)) {
+        // Apply blessing to all trees (faster growth)
+        setTrees(currentTrees => 
+          currentTrees.map(tree => ({
+            ...tree,
+            catBlessings: tree.catBlessings + 1
+          }))
+        )
+        
+        setCatState(current => ({
+          ...current,
+          blessingsGiven: current.blessingsGiven + 1,
+          lastBlessing: Date.now()
+        }))
+        return true
+      }
     }
     return false
   }
@@ -144,6 +173,8 @@ function App() {
               catState={catState}
               pawPoints={pawPoints}
               onCareCat={careCat}
+              onBlessForest={blessForest}
+              trees={trees}
             />
           </TabsContent>
 

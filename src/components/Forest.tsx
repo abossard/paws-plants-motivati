@@ -49,21 +49,27 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
 
   const getGrowthStage = (tree: Tree) => {
     const daysSincePlanted = (Date.now() - tree.plantedAt) / (1000 * 60 * 60 * 24)
-    if (daysSincePlanted < 1) return 'seedling'
-    if (daysSincePlanted < 3) return 'young'
-    if (daysSincePlanted < 7) return 'mature'
+    
+    // Cat blessings accelerate growth (each blessing reduces required time by 20%)
+    const accelerationFactor = 1 - (tree.catBlessings * 0.2)
+    const adjustedDays = daysSincePlanted / Math.max(accelerationFactor, 0.3) // Minimum 30% of original time
+    
+    if (adjustedDays < 1) return 'seedling'
+    if (adjustedDays < 3) return 'young'
+    if (adjustedDays < 7) return 'mature'
     return 'ancient'
   }
 
   const getTreeDisplay = (tree: Tree) => {
     const stage = getGrowthStage(tree)
     const baseEmoji = treeTypes[tree.type].emoji
+    const isBlessed = tree.catBlessings > 0
     
     switch (stage) {
-      case 'seedling': return '🌱'
-      case 'young': return tree.type === 'cherry' ? '🌸' : '🌿'
-      case 'mature': return baseEmoji
-      case 'ancient': return baseEmoji + '✨'
+      case 'seedling': return isBlessed ? '🌱✨' : '🌱'
+      case 'young': return isBlessed ? (tree.type === 'cherry' ? '🌸✨' : '🌿✨') : (tree.type === 'cherry' ? '🌸' : '🌿')
+      case 'mature': return isBlessed ? baseEmoji + '✨' : baseEmoji
+      case 'ancient': return isBlessed ? baseEmoji + '🌟' : baseEmoji + '✨'
       default: return baseEmoji
     }
   }
@@ -71,12 +77,13 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
   const getGrowthDescription = (tree: Tree) => {
     const stage = getGrowthStage(tree)
     const daysSincePlanted = Math.floor((Date.now() - tree.plantedAt) / (1000 * 60 * 60 * 24))
+    const blessingsText = tree.catBlessings > 0 ? ` (${tree.catBlessings} cat blessing${tree.catBlessings > 1 ? 's' : ''})` : ''
     
     switch (stage) {
-      case 'seedling': return `Just sprouted ${daysSincePlanted === 0 ? 'today' : `${daysSincePlanted} day(s) ago`}`
-      case 'young': return `Growing strong (${daysSincePlanted} days old)`
-      case 'mature': return `Fully grown (${daysSincePlanted} days old)`
-      case 'ancient': return `Ancient and wise (${daysSincePlanted} days old)`
+      case 'seedling': return `Just sprouted ${daysSincePlanted === 0 ? 'today' : `${daysSincePlanted} day(s) ago`}${blessingsText}`
+      case 'young': return `Growing strong (${daysSincePlanted} days old)${blessingsText}`
+      case 'mature': return `Fully grown (${daysSincePlanted} days old)${blessingsText}`
+      case 'ancient': return `Ancient and wise (${daysSincePlanted} days old)${blessingsText}`
       default: return 'Growing...'
     }
   }
@@ -202,7 +209,8 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
                         left: position.left,
                         top: position.top,
                         zIndex: position.zIndex,
-                        fontSize: `${2 + sizeMultiplier}rem`
+                        fontSize: `${2 + sizeMultiplier}rem`,
+                        filter: tree.catBlessings > 0 ? 'drop-shadow(0 0 8px rgba(147, 51, 234, 0.4))' : 'none'
                       }}
                       title={`${treeTypes[tree.type].name} - ${getGrowthDescription(tree)}`}
                     >
@@ -269,6 +277,12 @@ export default function Forest({ trees, pawPoints, onPlantTree, getTreeCost }: F
                   🌟 Your forest has <strong>{trees.length}</strong> tree{trees.length !== 1 ? 's' : ''}! 
                   Trees grow and change over time as you continue your journey.
                   {trees.length > 0 && <div className="mt-1 text-xs">💡 Hover over trees to see their details</div>}
+                  
+                  {trees.some(tree => tree.catBlessings > 0) && (
+                    <div className="mt-2 text-xs text-purple-600 font-medium">
+                      ✨ Some trees have been blessed by your cat and are growing faster! ✨
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

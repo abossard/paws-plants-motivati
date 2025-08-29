@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Heart, GameController, Coffee } from '@phosphor-icons/react'
-import { CatState } from '@/App'
+import { Heart, GameController, Coffee, Sparkle } from '@phosphor-icons/react'
+import { CatState, Tree } from '@/App'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
@@ -10,6 +10,8 @@ interface CatAvatarProps {
   catState: CatState
   pawPoints: number
   onCareCat: (action: 'feed' | 'play') => boolean
+  onBlessForest: () => boolean
+  trees: Tree[]
 }
 
 const catEmojis = {
@@ -23,23 +25,26 @@ const catMessages = {
     "Purr purr! I'm so happy!",
     "Thank you for taking care of me!",
     "I love spending time with you!",
-    "Life is great with you around!"
+    "Life is great with you around!",
+    "I feel magical energy flowing through me! ✨"
   ],
   neutral: [
     "Hello there, friend!",
     "I'm doing okay today.",
     "Maybe we could spend some time together?",
-    "How are your tasks going?"
+    "How are your tasks going?",
+    "I wonder if I could help your trees grow..."
   ],
   sad: [
     "I could use some attention...",
     "It's been a while since we played...",
     "I'm feeling a bit lonely.",
-    "Could you spare some time for me?"
+    "Could you spare some time for me?",
+    "My magic feels weak when I'm sad..."
   ]
 }
 
-export default function CatAvatar({ catState, pawPoints, onCareCat }: CatAvatarProps) {
+export default function CatAvatar({ catState, pawPoints, onCareCat, onBlessForest, trees }: CatAvatarProps) {
   const [message, setMessage] = useState('')
   const [isAnimating, setIsAnimating] = useState(false)
 
@@ -73,6 +78,30 @@ export default function CatAvatar({ catState, pawPoints, onCareCat }: CatAvatarP
       setIsAnimating(true)
       toast.success("Your cat loves playing with you! 🎾")
       setTimeout(() => setIsAnimating(false), 1000)
+    }
+  }
+
+  const handleBlessForest = () => {
+    if (pawPoints < 25) {
+      toast.error("Not enough Paw Points! You need 25 points for a forest blessing.")
+      return
+    }
+    
+    if (catState.mood !== 'happy') {
+      toast.error("Your cat needs to be happy to bless the forest! Try feeding or playing with them first.")
+      return
+    }
+
+    if (trees.length === 0) {
+      toast.error("You need to have trees in your forest to bless them!")
+      return
+    }
+    
+    const success = onBlessForest()
+    if (success) {
+      setIsAnimating(true)
+      toast.success("Your cat blessed the forest with magical growth energy! ✨🌱")
+      setTimeout(() => setIsAnimating(false), 1500)
     }
   }
 
@@ -140,6 +169,37 @@ export default function CatAvatar({ catState, pawPoints, onCareCat }: CatAvatarP
               <span className="text-xs">15 🐾</span>
             </Button>
           </div>
+
+          {/* Forest Blessing - Special Ability */}
+          {trees.length > 0 && (
+            <div className="mt-6">
+              <div className="text-sm text-muted-foreground mb-3 text-center">
+                ✨ Special Ability ✨
+              </div>
+              <Button
+                onClick={handleBlessForest}
+                disabled={pawPoints < 25 || catState.mood !== 'happy'}
+                variant={pawPoints >= 25 && catState.mood === 'happy' ? "default" : "secondary"}
+                className="w-full max-w-md mx-auto flex flex-col gap-2 h-auto py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                style={{
+                  background: pawPoints >= 25 && catState.mood === 'happy' 
+                    ? 'linear-gradient(45deg, #8b5cf6, #ec4899)' 
+                    : undefined
+                }}
+              >
+                <Sparkle className="w-6 h-6" />
+                <span>Bless Forest</span>
+                <span className="text-xs">25 🐾 • Requires Happy Cat</span>
+                <span className="text-xs opacity-80">Makes all trees grow faster!</span>
+              </Button>
+              
+              {catState.mood !== 'happy' && (
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  💡 Keep your cat happy to unlock forest blessings!
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -161,6 +221,22 @@ export default function CatAvatar({ catState, pawPoints, onCareCat }: CatAvatarP
               <span>{getTimeSinceLastCare(catState.lastPlayed)}</span>
             </div>
           </div>
+          
+          {catState.blessingsGiven > 0 && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <div className="text-center">
+                <div className="text-sm font-medium text-primary">✨ Magical Powers ✨</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Forest blessings given: <strong>{catState.blessingsGiven}</strong>
+                </div>
+                {catState.lastBlessing > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    Last blessing: {getTimeSinceLastCare(catState.lastBlessing)}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
