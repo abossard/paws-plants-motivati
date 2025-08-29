@@ -54,7 +54,7 @@ export default function CatAvatar({ catState, pawPoints, onCareCat, onBlessFores
   }, [catState.mood])
 
   const handleFeed = () => {
-    if (pawPoints < 15) {
+    if (pawPoints < 10) {
       toast.error("Not enough Paw Points! Complete more tasks to earn points.")
       return
     }
@@ -68,7 +68,7 @@ export default function CatAvatar({ catState, pawPoints, onCareCat, onBlessFores
   }
 
   const handlePlay = () => {
-    if (pawPoints < 15) {
+    if (pawPoints < 5) {
       toast.error("Not enough Paw Points! Complete more tasks to earn points.")
       return
     }
@@ -149,24 +149,24 @@ export default function CatAvatar({ catState, pawPoints, onCareCat, onBlessFores
           <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
             <Button
               onClick={handleFeed}
-              disabled={pawPoints < 15}
-              variant={pawPoints >= 15 ? "default" : "secondary"}
+              disabled={pawPoints < 10}
+              variant={pawPoints >= 10 ? "default" : "secondary"}
               className="flex flex-col gap-2 h-auto py-4"
             >
               <Coffee className="w-6 h-6" />
               <span>Feed Cat</span>
-              <span className="text-xs">15 🐾</span>
+              <span className="text-xs">10 🐾</span>
             </Button>
 
             <Button
               onClick={handlePlay}
-              disabled={pawPoints < 15}
-              variant={pawPoints >= 15 ? "default" : "secondary"}
+              disabled={pawPoints < 5}
+              variant={pawPoints >= 5 ? "default" : "secondary"}
               className="flex flex-col gap-2 h-auto py-4"
             >
               <GameController className="w-6 h-6" />
               <span>Play</span>
-              <span className="text-xs">15 🐾</span>
+              <span className="text-xs">5 🐾</span>
             </Button>
           </div>
 

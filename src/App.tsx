@@ -131,7 +131,7 @@ function App() {
   }
 
   const careCat = (action: 'feed' | 'play') => {
-    const cost = 15
+    const cost = action === 'feed' ? 10 : 5
     if (spendPoints(cost)) {
       setCatState(current => ({
         ...current,
