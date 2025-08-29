@@ -3,10 +3,11 @@ import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CheckSquare, TreePine, Heart } from '@phosphor-icons/react'
+import { CheckSquare, TreePine, Heart, ShoppingBag } from '@phosphor-icons/react'
 import { Toaster } from '@/components/ui/sonner'
 import TaskManager from '@/components/TaskManager'
 import CatAvatar from '@/components/CatAvatar'
+import CatShop from '@/components/CatShop'
 import Forest from '@/components/Forest'
 
 export interface Task {
@@ -36,10 +37,90 @@ export interface CatState {
   lastBlessing: number
 }
 
+export interface CatItem {
+  id: string
+  name: string
+  type: 'toy' | 'accessory' | 'food'
+  icon: string
+  description: string
+  cost: number
+  effects: {
+    moodBoost?: number
+    specialAbility?: string
+  }
+}
+
+export interface CatInventory {
+  [itemId: string]: {
+    item: CatItem
+    quantity: number
+    lastUsed?: number
+  }
+}
+
+// Available shop items
+const SHOP_ITEMS: CatItem[] = [
+  {
+    id: 'yarn-ball',
+    name: 'Yarn Ball',
+    type: 'toy',
+    icon: '🧶',
+    description: 'A soft yarn ball that keeps your cat entertained longer',
+    cost: 15,
+    effects: { moodBoost: 2 }
+  },
+  {
+    id: 'catnip',
+    name: 'Premium Catnip',
+    type: 'toy',
+    icon: '🌿',
+    description: 'High-quality catnip that makes your cat extra happy',
+    cost: 20,
+    effects: { moodBoost: 3, specialAbility: 'Extended happiness duration' }
+  },
+  {
+    id: 'collar',
+    name: 'Magical Collar',
+    type: 'accessory',
+    icon: '📿',
+    description: 'A mystical collar that enhances forest blessing power',
+    cost: 50,
+    effects: { specialAbility: 'Forest blessings cost 5 fewer points' }
+  },
+  {
+    id: 'scratching-post',
+    name: 'Scratching Post',
+    type: 'toy',
+    icon: '🪵',
+    description: 'Helps your cat stay active and maintain good mood',
+    cost: 30,
+    effects: { moodBoost: 1, specialAbility: 'Slower mood decay' }
+  },
+  {
+    id: 'crown',
+    name: 'Royal Crown',
+    type: 'accessory',
+    icon: '👑',
+    description: 'Makes your cat feel like royalty',
+    cost: 75,
+    effects: { moodBoost: 4, specialAbility: 'Doubled blessing power' }
+  },
+  {
+    id: 'fish-treats',
+    name: 'Gourmet Fish Treats',
+    type: 'food',
+    icon: '🐟',
+    description: 'Delicious treats that provide lasting satisfaction',
+    cost: 12,
+    effects: { moodBoost: 2, specialAbility: 'Feeding lasts longer' }
+  }
+]
+
 function App() {
   const [pawPoints, setPawPoints] = useKV("paw-points", 0)
   const [tasks, setTasks] = useKV<Task[]>("tasks", [])
   const [trees, setTrees] = useKV<Tree[]>("trees", [])
+  const [catInventory, setCatInventory] = useKV<CatInventory>("cat-inventory", {})
   const [catState, setCatState] = useKV<CatState>("cat-state", {
     mood: 'neutral',
     lastFed: Date.now(),
@@ -144,14 +225,21 @@ function App() {
   }
 
   const blessForest = () => {
-    const cost = 25
+    // Check for magical collar discount
+    const hasCollar = catInventory['collar']?.quantity > 0
+    const cost = hasCollar ? 20 : 25
+    
     if (pawPoints >= cost && catState.mood === 'happy') {
       if (spendPoints(cost)) {
+        // Check for crown bonus (doubled power)
+        const hasCrown = catInventory['crown']?.quantity > 0
+        const blessingPower = hasCrown ? 2 : 1
+        
         // Apply blessing to all trees (faster growth)
         setTrees(currentTrees => 
           currentTrees.map(tree => ({
             ...tree,
-            catBlessings: tree.catBlessings + 1
+            catBlessings: tree.catBlessings + blessingPower
           }))
         )
         
@@ -164,6 +252,59 @@ function App() {
       }
     }
     return false
+  }
+
+  const buyItem = (itemId: string) => {
+    const item = SHOP_ITEMS.find(i => i.id === itemId)
+    if (!item) return false
+    
+    if (spendPoints(item.cost)) {
+      setCatInventory(current => ({
+        ...current,
+        [itemId]: {
+          item,
+          quantity: (current[itemId]?.quantity || 0) + 1,
+          lastUsed: current[itemId]?.lastUsed
+        }
+      }))
+      return true
+    }
+    return false
+  }
+
+  const useItem = (itemId: string) => {
+    const inventoryItem = catInventory[itemId]
+    if (!inventoryItem || inventoryItem.quantity <= 0) return false
+    
+    // Apply item effects
+    setCatState(current => ({
+      ...current,
+      mood: 'happy', // Items make cat happy
+      lastPlayed: Date.now() // Reset interaction timer
+    }))
+    
+    // Consume the item (except accessories which are permanent)
+    if (inventoryItem.item.type !== 'accessory') {
+      setCatInventory(current => ({
+        ...current,
+        [itemId]: {
+          ...inventoryItem,
+          quantity: inventoryItem.quantity - 1,
+          lastUsed: Date.now()
+        }
+      }))
+    } else {
+      // For accessories, just update last used time
+      setCatInventory(current => ({
+        ...current,
+        [itemId]: {
+          ...inventoryItem,
+          lastUsed: Date.now()
+        }
+      }))
+    }
+    
+    return true
   }
 
   const getTreeCost = (type: Tree['type']) => {
@@ -188,7 +329,7 @@ function App() {
         </header>
 
         <Tabs defaultValue="tasks" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <CheckSquare className="w-4 h-4" />
               Tasks
@@ -196,6 +337,10 @@ function App() {
             <TabsTrigger value="cat" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
               Cat Care
+            </TabsTrigger>
+            <TabsTrigger value="shop" className="flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4" />
+              Shop
             </TabsTrigger>
             <TabsTrigger value="forest" className="flex items-center gap-2">
               <TreePine className="w-4 h-4" />
@@ -215,9 +360,20 @@ function App() {
             <CatAvatar 
               catState={catState}
               pawPoints={pawPoints}
+              catInventory={catInventory}
               onCareCat={careCat}
               onBlessForest={blessForest}
+              onUseItem={useItem}
               trees={trees}
+            />
+          </TabsContent>
+
+          <TabsContent value="shop">
+            <CatShop 
+              pawPoints={pawPoints}
+              catInventory={catInventory}
+              onBuyItem={buyItem}
+              shopItems={SHOP_ITEMS}
             />
           </TabsContent>
 

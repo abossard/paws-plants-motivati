@@ -23,14 +23,19 @@
 - **Success criteria**: Intuitive task creation, satisfying completion interaction, persistent storage
 
 ### Cat Avatar & Care System
-- **What it does**: Virtual cat with mood states that can be improved through feeding and playing
-- **Why it matters**: Provides emotional connection and immediate feedback for earned points
-- **Success criteria**: Responsive animations, clear mood indicators, rewarding interactions
+- **What it does**: Virtual cat with mood states that can be improved through feeding and playing, enhanced with purchasable toys and accessories
+- **Why it matters**: Provides emotional connection and immediate feedback for earned points while allowing for customization and long-term investment
+- **Success criteria**: Responsive animations, clear mood indicators, rewarding interactions, meaningful item effects
+
+### Cat Shop & Inventory System
+- **What it does**: Shop where users can purchase toys, accessories, and food items for their cat using Paw Points
+- **Why it matters**: Adds depth to the progression system and provides additional ways to care for the cat with permanent upgrades and consumable benefits
+- **Success criteria**: Clear item categorization, meaningful effects from items, balanced pricing, satisfying purchase experience
 
 ### Forest Blessing System (Enhanced Feature)
-- **What it does**: Happy cats can bless the forest to accelerate tree growth across all ground levels for premium points
-- **Why it matters**: Creates synergy between cat care and forest growth, encouraging consistent engagement while adding magical elements
-- **Success criteria**: Clear visual feedback, meaningful impact on tree growth across the 2D landscape, appropriate cost balancing
+- **What it does**: Happy cats can bless the forest to accelerate tree growth, with enhanced effects from magical accessories
+- **Why it matters**: Creates synergy between cat care, shop purchases, and forest growth, encouraging consistent engagement while adding magical elements
+- **Success criteria**: Clear visual feedback, meaningful impact on tree growth, appropriate cost balancing with accessory bonuses
 
 ### Tree Planting & Forest Growth
 - **What it does**: Users spend points to plant different tree types that grow over time in a realistic 2D side-view forest with multiple ground levels
@@ -38,9 +43,9 @@
 - **Success criteria**: Varied tree types on different terrain heights, realistic growth progression, beautiful layered forest visualization with depth and natural elements
 
 ### Point Economy
-- **What it does**: Paw Points earned from task completion can be spent on cat care (15 points) or tree planting (20-35 points) or forest blessings (25 points)
-- **Why it matters**: Creates meaningful choices and resource management
-- **Success criteria**: Balanced costs that encourage diverse interactions
+- **What it does**: Paw Points earned from task completion can be spent on cat care (10 points for feeding, 5 for playing), tree planting (20-35 points), forest blessings (25 points, discounted to 20 with Magical Collar), or cat shop items (12-75 points)
+- **Why it matters**: Creates meaningful choices and resource management with multiple investment paths
+- **Success criteria**: Balanced costs that encourage diverse interactions and provide both immediate gratification and long-term goals
 
 ## Design Direction
 

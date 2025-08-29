@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Heart, GameController, Coffee, Sparkle } from '@phosphor-icons/react'
-import { CatState, Tree } from '@/App'
+import { Badge } from '@/components/ui/badge'
+import { Heart, GameController, Coffee, Sparkle, Gift } from '@phosphor-icons/react'
+import { CatState, Tree, CatInventory } from '@/App'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
 interface CatAvatarProps {
   catState: CatState
   pawPoints: number
+  catInventory: CatInventory
   onCareCat: (action: 'feed' | 'play') => boolean
   onBlessForest: () => boolean
+  onUseItem: (itemId: string) => boolean
   trees: Tree[]
 }
 
@@ -44,7 +47,7 @@ const catMessages = {
   ]
 }
 
-export default function CatAvatar({ catState, pawPoints, onCareCat, onBlessForest, trees }: CatAvatarProps) {
+export default function CatAvatar({ catState, pawPoints, catInventory, onCareCat, onBlessForest, onUseItem, trees }: CatAvatarProps) {
   const [message, setMessage] = useState('')
   const [isAnimating, setIsAnimating] = useState(false)
 
@@ -82,8 +85,12 @@ export default function CatAvatar({ catState, pawPoints, onCareCat, onBlessFores
   }
 
   const handleBlessForest = () => {
-    if (pawPoints < 25) {
-      toast.error("Not enough Paw Points! You need 25 points for a forest blessing.")
+    // Check for magical collar discount
+    const hasCollar = catInventory['collar']?.quantity > 0
+    const cost = hasCollar ? 20 : 25
+    
+    if (pawPoints < cost) {
+      toast.error(`Not enough Paw Points! You need ${cost} points for a forest blessing.`)
       return
     }
     
@@ -100,8 +107,35 @@ export default function CatAvatar({ catState, pawPoints, onCareCat, onBlessFores
     const success = onBlessForest()
     if (success) {
       setIsAnimating(true)
-      toast.success("Your cat blessed the forest with magical growth energy! ✨🌱")
+      const hasCrown = catInventory['crown']?.quantity > 0
+      const message = hasCollar && hasCrown 
+        ? "Your royal cat blessed the forest with enhanced magical power! ✨👑🌲" 
+        : hasCollar 
+        ? "Your cat's magical collar enhanced the forest blessing! ✨📿🌲"
+        : hasCrown
+        ? "Your royal cat blessed the forest with doubled power! ✨👑🌲"
+        : "Your cat blessed the forest with magical growth energy! ✨🌱"
+      toast.success(message)
       setTimeout(() => setIsAnimating(false), 1500)
+    }
+  }
+
+  const handleUseItem = (itemId: string) => {
+    const item = catInventory[itemId]
+    if (!item || item.quantity <= 0) {
+      toast.error("You don't have this item!")
+      return
+    }
+
+    const success = onUseItem(itemId)
+    if (success) {
+      setIsAnimating(true)
+      if (item.item.type === 'accessory') {
+        toast.success(`✨ ${item.item.name} equipped! Your cat looks fabulous!`)
+      } else {
+        toast.success(`🎁 Used ${item.item.name}! Your cat is delighted!`)
+      }
+      setTimeout(() => setIsAnimating(false), 1000)
     }
   }
 
@@ -176,26 +210,77 @@ export default function CatAvatar({ catState, pawPoints, onCareCat, onBlessFores
               <div className="text-sm text-muted-foreground mb-3 text-center">
                 ✨ Special Ability ✨
               </div>
-              <Button
-                onClick={handleBlessForest}
-                disabled={pawPoints < 25 || catState.mood !== 'happy'}
-                variant={pawPoints >= 25 && catState.mood === 'happy' ? "default" : "secondary"}
-                className="w-full max-w-md mx-auto flex flex-col gap-2 h-auto py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-                style={{
-                  background: pawPoints >= 25 && catState.mood === 'happy' 
-                    ? 'linear-gradient(45deg, #8b5cf6, #ec4899)' 
-                    : undefined
-                }}
-              >
-                <Sparkle className="w-6 h-6" />
-                <span>Bless Forest</span>
-                <span className="text-xs">25 🐾 • Requires Happy Cat</span>
-                <span className="text-xs opacity-80">Makes trees on all ground levels grow faster!</span>
-              </Button>
+              {(() => {
+                const hasCollar = catInventory['collar']?.quantity > 0
+                const hasCrown = catInventory['crown']?.quantity > 0
+                const cost = hasCollar ? 20 : 25
+                
+                return (
+                  <Button
+                    onClick={handleBlessForest}
+                    disabled={pawPoints < cost || catState.mood !== 'happy'}
+                    variant={pawPoints >= cost && catState.mood === 'happy' ? "default" : "secondary"}
+                    className="w-full max-w-md mx-auto flex flex-col gap-2 h-auto py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                    style={{
+                      background: pawPoints >= cost && catState.mood === 'happy' 
+                        ? 'linear-gradient(45deg, #8b5cf6, #ec4899)' 
+                        : undefined
+                    }}
+                  >
+                    <Sparkle className="w-6 h-6" />
+                    <span>Bless Forest</span>
+                    <span className="text-xs">
+                      {cost} 🐾 • Requires Happy Cat
+                      {hasCollar && " • 5 Points Discount!"}
+                    </span>
+                    <span className="text-xs opacity-80">
+                      {hasCrown ? "Doubled power! " : ""}Makes trees grow faster!
+                    </span>
+                  </Button>
+                )
+              })()}
               
               {catState.mood !== 'happy' && (
                 <p className="text-xs text-muted-foreground text-center mt-2">
                   💡 Keep your cat happy to unlock forest blessings!
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Cat Items */}
+          {Object.keys(catInventory).length > 0 && (
+            <div className="mt-6">
+              <div className="text-sm text-muted-foreground mb-3 text-center">
+                🎁 Cat Items
+              </div>
+              <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
+                {Object.entries(catInventory)
+                  .filter(([_, item]) => item.quantity > 0)
+                  .slice(0, 4) // Show max 4 items
+                  .map(([itemId, item]) => (
+                    <Button
+                      key={itemId}
+                      onClick={() => handleUseItem(itemId)}
+                      disabled={item.item.type === 'accessory' && item.lastUsed}
+                      variant="outline"
+                      className="flex flex-col gap-1 h-auto py-3"
+                    >
+                      <span className="text-xl">{item.item.icon}</span>
+                      <span className="text-xs">{item.item.name}</span>
+                      {item.item.type === 'accessory' ? (
+                        <span className="text-xs text-muted-foreground">
+                          {item.lastUsed ? '✓ Equipped' : 'Equip'}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">×{item.quantity}</span>
+                      )}
+                    </Button>
+                  ))}
+              </div>
+              {Object.keys(catInventory).length > 4 && (
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Visit the shop to see all items
                 </p>
               )}
             </div>
