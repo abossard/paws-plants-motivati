@@ -378,19 +378,19 @@ function App() {
 
         <Tabs defaultValue="tasks" className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
-            <TabsTrigger value="tasks" className="flex items-center gap-2">
+            <TabsTrigger value="tasks" className="flex items-center gap-2 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 data-[state=active]:border-blue-300">
               <CheckSquare className="w-4 h-4" />
               Tasks
             </TabsTrigger>
-            <TabsTrigger value="cat" className="flex items-center gap-2">
+            <TabsTrigger value="cat" className="flex items-center gap-2 data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700 data-[state=active]:border-yellow-300">
               <Heart className="w-4 h-4" />
               Cat Care
             </TabsTrigger>
-            <TabsTrigger value="shop" className="flex items-center gap-2">
+            <TabsTrigger value="shop" className="flex items-center gap-2 data-[state=active]:bg-red-100 data-[state=active]:text-red-700 data-[state=active]:border-red-300">
               <ShoppingBag className="w-4 h-4" />
               Shop
             </TabsTrigger>
-            <TabsTrigger value="forest" className="flex items-center gap-2">
+            <TabsTrigger value="forest" className="flex items-center gap-2 data-[state=active]:bg-green-100 data-[state=active]:text-green-700 data-[state=active]:border-green-300">
               <TreePine className="w-4 h-4" />
               Forest
             </TabsTrigger>
