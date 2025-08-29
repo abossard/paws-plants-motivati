@@ -15,6 +15,7 @@ export interface Task {
   text: string
   completed: boolean
   createdAt: number
+  parentId?: string // For subtasks
 }
 
 export interface Tree {
@@ -154,20 +155,39 @@ function App() {
   }, [])
 
   const completeTask = (taskId: string) => {
-    setTasks(currentTasks => 
-      currentTasks.map(task => 
+    setTasks(currentTasks => {
+      const updatedTasks = currentTasks.map(task => 
         task.id === taskId ? { ...task, completed: true } : task
       )
-    )
+      
+      // Check if completing this task should auto-complete parent
+      const completedTask = updatedTasks.find(t => t.id === taskId)
+      if (completedTask?.parentId) {
+        const siblings = updatedTasks.filter(t => t.parentId === completedTask.parentId)
+        const allSiblingsCompleted = siblings.every(t => t.completed)
+        
+        if (allSiblingsCompleted) {
+          // Auto-complete parent task
+          return updatedTasks.map(task =>
+            task.id === completedTask.parentId ? { ...task, completed: true } : task
+          )
+        }
+      }
+      
+      return updatedTasks
+    })
+    
+    // Award points for completion
     setPawPoints(current => current + 10)
   }
 
-  const addTask = (text: string) => {
+  const addTask = (text: string, parentId?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
       text,
       completed: false,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      parentId
     }
     setTasks(currentTasks => [...currentTasks, newTask])
   }

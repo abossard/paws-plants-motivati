@@ -18,9 +18,9 @@
 ## Essential Features
 
 ### Task Management
-- **What it does**: Users can create, view, and complete daily tasks
-- **Why it matters**: Core productivity mechanic that drives the entire reward system
-- **Success criteria**: Intuitive task creation, satisfying completion interaction, persistent storage
+- **What it does**: Users can create, view, and complete daily tasks with hierarchical subtask support
+- **Why it matters**: Core productivity mechanic that drives the entire reward system while allowing for complex project breakdown
+- **Success criteria**: Intuitive task creation, subtask organization, satisfying completion interaction, auto-completion of parent tasks when all subtasks are done, persistent storage
 
 ### Cat Avatar & Care System
 - **What it does**: Virtual cat with mood states that can be improved through feeding and playing, enhanced with purchasable toys and accessories
@@ -101,6 +101,11 @@
 - **Scalability**: Forest layout adapts to any number of trees
 
 ## Key Enhancements Added
+- **Hierarchical Task System**: Main tasks can now have subtasks that can be managed independently, with visual indentation and progress tracking
+- **Smart Task Completion**: When all subtasks are completed, the parent task automatically completes
+- **Subtask Progress Indicators**: Visual counters show completion status (e.g., "2/4" subtasks done)
+- **Collapsible Task Tree**: Users can expand/collapse subtask views for better organization
+- **Inline Subtask Addition**: Hover over any task to reveal a "+" button for quick subtask creation
 - **Cat Forest Blessing**: Happy cats can spend 25 points to bless all trees, accelerating their growth by 20% per blessing
 - **Visual Magic Effects**: Blessed trees show sparkles and purple glow
 - **Enhanced Cat Messages**: References to magical abilities

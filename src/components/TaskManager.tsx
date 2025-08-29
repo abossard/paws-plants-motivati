@@ -3,14 +3,169 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, Sparkle } from '@phosphor-icons/react'
+import { Plus, Sparkle, CaretDown, CaretRight } from '@phosphor-icons/react'
 import { Task } from '@/App'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface TaskManagerProps {
   tasks: Task[]
-  onAddTask: (text: string) => void
+  onAddTask: (text: string, parentId?: string) => void
   onCompleteTask: (taskId: string) => void
+}
+
+interface TaskItemProps {
+  task: Task
+  subtasks: Task[]
+  onAddSubtask: (parentId: string, text: string) => void
+  onCompleteTask: (taskId: string) => void
+  level?: number
+}
+
+function TaskItem({ task, subtasks, onAddSubtask, onCompleteTask, level = 0 }: TaskItemProps) {
+  const [showSubtasks, setShowSubtasks] = useState(true)
+  const [showAddSubtask, setShowAddSubtask] = useState(false)
+  const [subtaskText, setSubtaskText] = useState('')
+
+  const handleAddSubtask = () => {
+    if (subtaskText.trim()) {
+      onAddSubtask(task.id, subtaskText.trim())
+      setSubtaskText('')
+      setShowAddSubtask(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleAddSubtask()
+    } else if (e.key === 'Escape') {
+      setShowAddSubtask(false)
+      setSubtaskText('')
+    }
+  }
+
+  const completedSubtasks = subtasks.filter(st => st.completed).length
+  const totalSubtasks = subtasks.length
+  const allSubtasksCompleted = totalSubtasks > 0 && completedSubtasks === totalSubtasks
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -10 }}
+      className={`${level > 0 ? 'ml-6 border-l-2 border-muted pl-4' : ''}`}
+    >
+      <div className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors group">
+        <Checkbox
+          id={task.id}
+          checked={task.completed}
+          onCheckedChange={() => onCompleteTask(task.id)}
+        />
+        
+        <div className="flex-1 flex items-center gap-2">
+          {subtasks.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-1 h-6 w-6"
+              onClick={() => setShowSubtasks(!showSubtasks)}
+            >
+              {showSubtasks ? (
+                <CaretDown className="w-3 h-3" />
+              ) : (
+                <CaretRight className="w-3 h-3" />
+              )}
+            </Button>
+          )}
+          
+          <label 
+            htmlFor={task.id}
+            className={`text-sm font-medium cursor-pointer flex-1 ${
+              task.completed ? 'line-through opacity-60' : ''
+            }`}
+          >
+            {task.text}
+          </label>
+          
+          {totalSubtasks > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {completedSubtasks}/{totalSubtasks}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {!task.completed && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+              onClick={() => setShowAddSubtask(true)}
+              title="Add subtask"
+            >
+              <Plus className="w-3 h-3" />
+            </Button>
+          )}
+          <div className="text-xs text-accent font-medium">+10 🐾</div>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {showAddSubtask && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-2 ml-6"
+          >
+            <div className="flex gap-2">
+              <Input
+                placeholder="Add a subtask..."
+                value={subtaskText}
+                onChange={(e) => setSubtaskText(e.target.value)}
+                onKeyDown={handleKeyPress}
+                onBlur={() => {
+                  if (!subtaskText.trim()) {
+                    setShowAddSubtask(false)
+                  }
+                }}
+                className="text-sm"
+                autoFocus
+              />
+              <Button 
+                size="sm"
+                onClick={handleAddSubtask}
+                disabled={!subtaskText.trim()}
+              >
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSubtasks && subtasks.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-2 space-y-2"
+          >
+            {subtasks.map((subtask) => (
+              <TaskItem
+                key={subtask.id}
+                task={subtask}
+                subtasks={[]} // Subtasks don't have their own subtasks for now
+                onAddSubtask={onAddSubtask}
+                onCompleteTask={onCompleteTask}
+                level={level + 1}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
 }
 
 export default function TaskManager({ tasks, onAddTask, onCompleteTask }: TaskManagerProps) {
@@ -22,6 +177,10 @@ export default function TaskManager({ tasks, onAddTask, onCompleteTask }: TaskMa
       onAddTask(newTaskText.trim())
       setNewTaskText('')
     }
+  }
+
+  const handleAddSubtask = (parentId: string, text: string) => {
+    onAddTask(text, parentId)
   }
 
   const handleCompleteTask = (taskId: string) => {
@@ -49,8 +208,12 @@ export default function TaskManager({ tasks, onAddTask, onCompleteTask }: TaskMa
     }
   }
 
-  const activeTasks = tasks.filter(task => !task.completed)
-  const completedTasks = tasks.filter(task => task.completed)
+  // Organize tasks into parent-child relationships
+  const mainTasks = tasks.filter(task => !task.parentId)
+  const getSubtasks = (parentId: string) => tasks.filter(task => task.parentId === parentId)
+
+  const activeTasks = mainTasks.filter(task => !task.completed)
+  const completedTasks = mainTasks.filter(task => task.completed)
 
   return (
     <div className="space-y-6">
@@ -95,26 +258,13 @@ export default function TaskManager({ tasks, onAddTask, onCompleteTask }: TaskMa
             <div className="space-y-3">
               <AnimatePresence>
                 {activeTasks.map((task) => (
-                  <motion.div
+                  <TaskItem
                     key={task.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                  >
-                    <Checkbox
-                      id={task.id}
-                      checked={task.completed}
-                      onCheckedChange={() => handleCompleteTask(task.id)}
-                    />
-                    <label 
-                      htmlFor={task.id}
-                      className="flex-1 text-sm font-medium cursor-pointer"
-                    >
-                      {task.text}
-                    </label>
-                    <div className="text-xs text-accent font-medium">+10 🐾</div>
-                  </motion.div>
+                    task={task}
+                    subtasks={getSubtasks(task.id)}
+                    onAddSubtask={handleAddSubtask}
+                    onCompleteTask={handleCompleteTask}
+                  />
                 ))}
               </AnimatePresence>
             </div>
@@ -149,16 +299,13 @@ export default function TaskManager({ tasks, onAddTask, onCompleteTask }: TaskMa
                 <CardContent>
                   <div className="space-y-2">
                     {completedTasks.map((task) => (
-                      <div
+                      <TaskItem
                         key={task.id}
-                        className="flex items-center gap-3 p-2 rounded opacity-60"
-                      >
-                        <Checkbox checked={true} disabled />
-                        <span className="flex-1 text-sm line-through">
-                          {task.text}
-                        </span>
-                        <div className="text-xs text-green-600">✓ +10 🐾</div>
-                      </div>
+                        task={task}
+                        subtasks={getSubtasks(task.id)}
+                        onAddSubtask={handleAddSubtask}
+                        onCompleteTask={handleCompleteTask}
+                      />
                     ))}
                   </div>
                 </CardContent>
