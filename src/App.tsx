@@ -3,13 +3,15 @@ import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CheckSquare, TreePine, Heart, ShoppingBag, Star } from '@phosphor-icons/react'
+import { CheckSquare, TreePine, Heart, ShoppingBag, Star, ChartBar, Calendar } from '@phosphor-icons/react'
 import { Toaster } from '@/components/ui/sonner'
 import TaskManager from '@/components/TaskManager'
 import CatAvatar from '@/components/CatAvatar'
 import CatShop from '@/components/CatShop'
 import Forest from '@/components/Forest'
 import ItemShowcase from '@/components/ItemShowcase'
+import TaskStats from '@/components/TaskStats'
+import TaskCalendar from '@/components/TaskCalendar'
 
 export interface Task {
   id: string
@@ -738,10 +740,18 @@ function App() {
         </header>
 
         <Tabs defaultValue="tasks" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8 bg-sky-200">
+          <TabsList className="grid w-full grid-cols-7 mb-8 bg-sky-200">
             <TabsTrigger value="tasks" className="flex items-center gap-2 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 data-[state=active]:border-blue-300 bg-sky-100 text-sky-700">
               <CheckSquare className="w-4 h-4" />
               Tasks
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="flex items-center gap-2 data-[state=active]:bg-indigo-100 data-[state=active]:text-indigo-700 data-[state=active]:border-indigo-300 bg-sky-100 text-sky-700">
+              <ChartBar className="w-4 h-4" />
+              Stats
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2 data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 data-[state=active]:border-purple-300 bg-sky-100 text-sky-700">
+              <Calendar className="w-4 h-4" />
+              Calendar
             </TabsTrigger>
             <TabsTrigger value="cat" className="flex items-center gap-2 data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700 data-[state=active]:border-yellow-300 bg-sky-100 text-sky-700">
               <Heart className="w-4 h-4" />
@@ -751,7 +761,7 @@ function App() {
               <ShoppingBag className="w-4 h-4" />
               Shop
             </TabsTrigger>
-            <TabsTrigger value="showcase" className="flex items-center gap-2 data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 data-[state=active]:border-purple-300 bg-sky-100 text-sky-700">
+            <TabsTrigger value="showcase" className="flex items-center gap-2 data-[state=active]:bg-pink-100 data-[state=active]:text-pink-700 data-[state=active]:border-pink-300 bg-sky-100 text-sky-700">
               <Star className="w-4 h-4" />
               Collection
             </TabsTrigger>
@@ -767,6 +777,17 @@ function App() {
               onAddTask={addTask}
               onCompleteTask={completeTask}
               onUncompleteTask={uncompleteTask}
+            />
+          </TabsContent>
+
+          <TabsContent value="stats">
+            <TaskStats tasks={tasks} />
+          </TabsContent>
+
+          <TabsContent value="calendar">
+            <TaskCalendar 
+              tasks={tasks}
+              onAddTask={addTask}
             />
           </TabsContent>
 

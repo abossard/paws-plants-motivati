@@ -22,6 +22,16 @@
 - **Why it matters**: Core productivity mechanic that drives the entire reward system while allowing for complex project breakdown
 - **Success criteria**: Intuitive task creation, subtask organization, satisfying completion interaction, auto-completion of parent tasks when all subtasks are done, persistent storage
 
+### Task Statistics & Analytics
+- **What it does**: Comprehensive tracking of task completion with daily, weekly, monthly, and all-time statistics including completion rates, streaks, and point earnings
+- **Why it matters**: Provides users with meaningful insights into their productivity patterns and progress over time, encouraging consistent engagement through visible achievement tracking
+- **Success criteria**: Clear visual representation of statistics, accurate streak calculation, motivational performance indicators, easy-to-understand progress metrics
+
+### Task Calendar & Planning
+- **What it does**: Calendar interface allowing users to plan tasks for future dates with priority levels, move planned tasks to current day, and visualize upcoming workload
+- **Why it matters**: Enables proactive task planning and better time management while reducing daily planning overhead
+- **Success criteria**: Intuitive calendar navigation, easy task scheduling, priority-based color coding, seamless integration with daily task system
+
 ### Cat Avatar & Care System
 - **What it does**: Virtual cat with mood states that can be improved through feeding and playing, enhanced with purchasable toys and accessories
 - **Why it matters**: Provides emotional connection and immediate feedback for earned points while allowing for customization and long-term investment
@@ -115,3 +125,6 @@
 - **Visual Magic Effects**: Blessed trees show sparkles and purple glow
 - **Enhanced Cat Messages**: References to magical abilities
 - **Blessing Tracking**: Stats showing cat's magical contributions to forest growth
+- **Comprehensive Task Statistics**: Daily, weekly, monthly, and all-time tracking with completion rates, streaks, best performance days, and total points earned
+- **Task Calendar & Planning**: Full calendar interface for planning future tasks with priority levels, upcoming task overview, and seamless migration to daily tasks
+- **Advanced Analytics**: Current streak tracking, best day performance, and detailed period-based statistics with visual progress indicators
