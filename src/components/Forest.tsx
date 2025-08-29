@@ -224,19 +224,12 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {trees.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Sparkle className="w-8 h-8 mx-auto mb-2 text-accent" />
-              <p>Your forest is empty! Plant your first tree above.</p>
-              <p className="text-sm mt-1">Complete tasks to earn Paw Points for planting.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Forest Scene - 2D Side View */}
-              <div 
-                ref={forestRef}
-                className="relative min-h-96 bg-gradient-to-b from-sky-200 via-sky-100 to-green-50 rounded-lg overflow-hidden border-2 border-border cursor-crosshair"
-              >
+          <div className="space-y-4">
+            {/* Forest Scene - 2D Side View - Always visible */}
+            <div 
+              ref={forestRef}
+              className="relative min-h-96 bg-gradient-to-b from-sky-200 via-sky-100 to-green-50 rounded-lg overflow-hidden border-2 border-border cursor-crosshair"
+            >
                 {/* Background mountains/hills */}
                 <div className="absolute inset-0 pointer-events-none">
                   {/* Far mountains */}
@@ -275,6 +268,34 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
                 <div className="absolute top-8 left-12 w-16 h-8 bg-white rounded-full opacity-70 shadow-sm pointer-events-none"></div>
                 <div className="absolute top-12 left-32 w-12 h-6 bg-white rounded-full opacity-60 shadow-sm pointer-events-none"></div>
                 <div className="absolute top-6 left-1/2 w-14 h-7 bg-white rounded-full opacity-65 shadow-sm pointer-events-none"></div>
+                
+                {/* Walking Cat - Always present */}
+                <motion.div
+                  className="absolute text-xl pointer-events-none select-none"
+                  initial={{ x: -60 }}
+                  animate={{ x: [0, 200, 400, 200, 0] }}
+                  transition={{ 
+                    duration: 30, 
+                    repeat: Infinity, 
+                    ease: "linear",
+                    times: [0, 0.25, 0.5, 0.75, 1]
+                  }}
+                  style={{ bottom: '8%', zIndex: 20 }}
+                >
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.05, 1],
+                      rotate: [0, -2, 2, 0]
+                    }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    🐱
+                  </motion.div>
+                </motion.div>
                 
                 {/* Trees positioned on ground levels - DRAGGABLE */}
                 {trees.map((tree, index) => {
@@ -430,32 +451,45 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
                 )}
               </div>
               
+              {/* Forest description */}
               <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                 <div className="text-sm text-center text-muted-foreground">
-                  🌟 Your forest has <strong>{trees.length}</strong> tree{trees.length !== 1 ? 's' : ''} growing on different ground levels! 
-                  <div className="mt-1">Trees grow and change over time as you continue your journey.</div>
-                  {trees.length > 0 && (
-                    <div className="mt-1 text-xs">
-                      💡 <Hand className="w-3 h-3 inline mx-1" />
-                      Click and drag trees to rearrange your forest layout
-                    </div>
+                  {trees.length === 0 ? (
+                    <>
+                      <Sparkle className="w-5 h-5 mx-auto mb-2 text-accent" />
+                      <p>🐱 Your cat friend is exploring the empty forest! Plant your first tree above.</p>
+                      <p className="text-sm mt-1">Complete tasks to earn Paw Points for planting.</p>
+                    </>
+                  ) : (
+                    <>
+                      🌟 Your forest has <strong>{trees.length}</strong> tree{trees.length !== 1 ? 's' : ''} growing on different ground levels! 
+                      <div className="mt-1">Trees grow and change over time as you continue your journey.</div>
+                      {trees.length > 0 && (
+                        <div className="mt-1 text-xs">
+                          💡 <Hand className="w-3 h-3 inline mx-1" />
+                          Click and drag trees to rearrange your forest layout
+                        </div>
+                      )}
+                      
+                      {trees.some(tree => tree.catBlessings > 0) && (
+                        <div className="mt-2 text-xs text-purple-600 font-medium">
+                          ✨ Some trees have been blessed by your cat and are growing faster! ✨
+                        </div>
+                      )}
+                      
+                      {trees.length >= 5 && (
+                        <div className="mt-2 text-xs text-green-600 font-medium">
+                          🌲 Your forest is becoming a thriving ecosystem with wildlife! 🦋
+                        </div>
+                      )}
+                    </>
                   )}
-                  
-                  {trees.some(tree => tree.catBlessings > 0) && (
-                    <div className="mt-2 text-xs text-purple-600 font-medium">
-                      ✨ Some trees have been blessed by your cat and are growing faster! ✨
-                    </div>
-                  )}
-                  
-                  {trees.length >= 5 && (
-                    <div className="mt-2 text-xs text-green-600 font-medium">
-                      🌲 Your forest is becoming a thriving ecosystem with wildlife! 🦋
-                    </div>
-                  )}
+                  <div className="mt-2 text-xs text-accent font-medium">
+                    🐾 Your cat friend loves wandering through the forest!
+                  </div>
                 </div>
               </div>
             </div>
-          )}
         </CardContent>
       </Card>
     </div>
