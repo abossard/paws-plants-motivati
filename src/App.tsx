@@ -321,10 +321,36 @@ function App() {
     lastBlessing: 0
   })
 
-  // Migrate existing trees to have position data and fruit system
+  // Initialize demo trees and migrate existing trees
   useEffect(() => {
-    setTrees(currentTrees => 
-      currentTrees.map((tree, index) => {
+    setTrees(currentTrees => {
+      // If no trees exist, create one of each type at full growth for demo
+      if (currentTrees.length === 0) {
+        const treeTypes: Tree['type'][] = ['oak', 'pine', 'cherry', 'willow', 'maple', 'birch', 'cypress', 'bamboo']
+        const demoTrees: Tree[] = treeTypes.map((type, index) => {
+          const baseTime = Date.now()
+          // Set planted time to 7+ days ago to ensure ancient status (fully grown)
+          const plantedAt = baseTime - (8 * 24 * 60 * 60 * 1000) // 8 days ago
+          
+          return {
+            id: `demo-${type}-${baseTime + index}`,
+            type,
+            plantedAt,
+            growth: 100, // Full growth
+            catBlessings: Math.floor(Math.random() * 5), // Random blessings
+            position: {
+              x: 15 + (index * 10), // Spread across the forest
+              y: 15 + (index % 3) * 5 // Varied ground levels
+            },
+            lastHarvest: baseTime - (2 * 60 * 60 * 1000), // 2 hours ago for fruit generation
+            fruitCount: Math.floor(Math.random() * 3) + 1 // 1-3 fruits ready
+          }
+        })
+        return demoTrees
+      }
+      
+      // Migrate existing trees to have position data and fruit system
+      return currentTrees.map((tree, index) => {
         let updatedTree = { ...tree }
         
         // Add position if missing
@@ -348,7 +374,7 @@ function App() {
         
         return updatedTree
       })
-    )
+    })
   }, [])
 
   // Fruit production system - check for fruit generation
