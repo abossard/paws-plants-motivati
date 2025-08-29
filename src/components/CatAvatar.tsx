@@ -50,11 +50,21 @@ const catMessages = {
 export default function CatAvatar({ catState, pawPoints, catInventory, onCareCat, onBlessForest, onUseItem, trees }: CatAvatarProps) {
   const [message, setMessage] = useState('')
   const [isAnimating, setIsAnimating] = useState(false)
+  const [currentTime, setCurrentTime] = useState(Date.now())
 
   useEffect(() => {
     const messages = catMessages[catState.mood]
     setMessage(messages[Math.floor(Math.random() * messages.length)])
   }, [catState.mood])
+
+  // Update current time every minute to refresh status bars
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now())
+    }, 60000) // Update every minute
+
+    return () => clearInterval(interval)
+  }, [])
 
   const handleFeed = () => {
     if (pawPoints < 10) {
@@ -62,10 +72,19 @@ export default function CatAvatar({ catState, pawPoints, catInventory, onCareCat
       return
     }
     
+    const currentHunger = getHungerLevel()
+    if (currentHunger >= 95) {
+      toast.info("Your cat is already very full! 🐱")
+      return
+    }
+    
     const success = onCareCat('feed')
     if (success) {
       setIsAnimating(true)
-      toast.success("Your cat is purring with happiness! 🐱")
+      const hungerMessage = currentHunger < 30 ? "Your starving cat is so grateful! 🐱💕" :
+                           currentHunger < 60 ? "Your cat happily munches the food! 🐱" :
+                           "Your cat purrs contentedly while eating! 🐱"
+      toast.success(hungerMessage)
       setTimeout(() => setIsAnimating(false), 1000)
     }
   }
@@ -76,10 +95,19 @@ export default function CatAvatar({ catState, pawPoints, catInventory, onCareCat
       return
     }
     
+    const currentEntertainment = getEntertainmentLevel()
+    if (currentEntertainment >= 95) {
+      toast.info("Your cat is already very entertained! 🎾")
+      return
+    }
+    
     const success = onCareCat('play')
     if (success) {
       setIsAnimating(true)
-      toast.success("Your cat loves playing with you! 🎾")
+      const playMessage = currentEntertainment < 30 ? "Your bored cat springs to life with joy! 🎾✨" :
+                         currentEntertainment < 60 ? "Your cat loves playing with you! 🎾" :
+                         "Your cat enjoys the extra playtime! 🎾"
+      toast.success(playMessage)
       setTimeout(() => setIsAnimating(false), 1000)
     }
   }
@@ -146,6 +174,44 @@ export default function CatAvatar({ catState, pawPoints, catInventory, onCareCat
     return `${hours} hours ago`
   }
 
+  // Calculate hunger level (0-100, where 100 is fully fed)
+  const getHungerLevel = () => {
+    const hoursSinceLastFed = (currentTime - catState.lastFed) / (1000 * 60 * 60)
+    // Cat gets hungry over 6 hours, starting from 100 (fed) to 0 (hungry)
+    const hungerLevel = Math.max(0, 100 - (hoursSinceLastFed / 6) * 100)
+    return Math.round(hungerLevel)
+  }
+
+  // Calculate entertainment level (0-100, where 100 is fully entertained/busy)
+  const getEntertainmentLevel = () => {
+    const hoursSinceLastPlayed = (currentTime - catState.lastPlayed) / (1000 * 60 * 60)
+    // Cat gets bored over 4 hours, starting from 100 (busy) to 0 (bored)
+    const entertainmentLevel = Math.max(0, 100 - (hoursSinceLastPlayed / 4) * 100)
+    return Math.round(entertainmentLevel)
+  }
+
+  // Get status text based on level
+  const getHungerStatus = (level: number) => {
+    if (level >= 80) return 'Fed'
+    if (level >= 60) return 'Satisfied'
+    if (level >= 40) return 'Peckish'
+    if (level >= 20) return 'Hungry'
+    return 'Starving'
+  }
+
+  const getEntertainmentStatus = (level: number) => {
+    if (level >= 80) return 'Busy'
+    if (level >= 60) return 'Entertained'
+    if (level >= 40) return 'Content'
+    if (level >= 20) return 'Restless'
+    return 'Bored'
+  }
+
+  const hungerLevel = getHungerLevel()
+  const entertainmentLevel = getEntertainmentLevel()
+  const hungerStatus = getHungerStatus(hungerLevel)
+  const entertainmentStatus = getEntertainmentStatus(entertainmentLevel)
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <Card>
@@ -174,6 +240,67 @@ export default function CatAvatar({ catState, pawPoints, catInventory, onCareCat
             </div>
           </div>
 
+          {/* Cat Status Bars */}
+          <div className="space-y-4 max-w-md mx-auto">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium flex items-center gap-2">
+                  <Coffee className="w-4 h-4 text-orange-500" />
+                  Hunger
+                </span>
+                <span className={`font-medium ${
+                  hungerLevel < 30 ? 'text-red-600' : 
+                  hungerLevel < 60 ? 'text-orange-600' : 
+                  'text-green-600'
+                }`}>
+                  {hungerStatus}
+                </span>
+              </div>
+              <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-200">
+                <div 
+                  className={`h-full transition-all duration-300 ${
+                    hungerLevel < 30 ? 'bg-red-500' : 
+                    hungerLevel < 60 ? 'bg-orange-500' : 
+                    'bg-green-500'
+                  }`}
+                  style={{ width: `${hungerLevel}%` }}
+                />
+              </div>
+              <div className="text-xs text-muted-foreground text-center">
+                {hungerLevel}% satisfied
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium flex items-center gap-2">
+                  <GameController className="w-4 h-4 text-purple-500" />
+                  Entertainment
+                </span>
+                <span className={`font-medium ${
+                  entertainmentLevel < 30 ? 'text-red-600' : 
+                  entertainmentLevel < 60 ? 'text-orange-600' : 
+                  'text-green-600'
+                }`}>
+                  {entertainmentStatus}
+                </span>
+              </div>
+              <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-200">
+                <div 
+                  className={`h-full transition-all duration-300 ${
+                    entertainmentLevel < 30 ? 'bg-red-500' : 
+                    entertainmentLevel < 60 ? 'bg-orange-500' : 
+                    'bg-green-500'
+                  }`}
+                  style={{ width: `${entertainmentLevel}%` }}
+                />
+              </div>
+              <div className="text-xs text-muted-foreground text-center">
+                {entertainmentLevel}% entertained
+              </div>
+            </div>
+          </div>
+
           <Card className="mx-auto max-w-md">
             <CardContent className="p-4">
               <p className="text-muted-foreground italic">"{message}"</p>
@@ -185,22 +312,32 @@ export default function CatAvatar({ catState, pawPoints, catInventory, onCareCat
               onClick={handleFeed}
               disabled={pawPoints < 10}
               variant={pawPoints >= 10 ? "default" : "secondary"}
-              className="flex flex-col gap-2 h-auto py-4"
+              className={`flex flex-col gap-2 h-auto py-4 ${
+                hungerLevel < 30 ? 'ring-2 ring-red-400 ring-opacity-60 animate-pulse' : ''
+              }`}
             >
               <Coffee className="w-6 h-6" />
               <span>Feed Cat</span>
               <span className="text-xs">10 🐾</span>
+              {hungerLevel < 30 && (
+                <span className="text-xs text-red-600 font-medium">Urgent!</span>
+              )}
             </Button>
 
             <Button
               onClick={handlePlay}
               disabled={pawPoints < 5}
               variant={pawPoints >= 5 ? "default" : "secondary"}
-              className="flex flex-col gap-2 h-auto py-4"
+              className={`flex flex-col gap-2 h-auto py-4 ${
+                entertainmentLevel < 30 ? 'ring-2 ring-red-400 ring-opacity-60 animate-pulse' : ''
+              }`}
             >
               <GameController className="w-6 h-6" />
               <span>Play</span>
               <span className="text-xs">5 🐾</span>
+              {entertainmentLevel < 30 && (
+                <span className="text-xs text-red-600 font-medium">Urgent!</span>
+              )}
             </Button>
           </div>
 
