@@ -27,6 +27,29 @@
   background: radial-gradient(circle, var(--tw-gradient-from), var(--tw-gradient-to));
 }
 
+/* Weather animation utilities */
+@keyframes rainFall {
+  0% {
+    transform: translateY(-100vh) rotate(10deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(100vh) rotate(10deg);
+    opacity: 0;
+  }
+}
+
+@keyframes snowFall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0.2;
+  }
+}
+
 :root {
   --background: oklch(0.95 0.08 155);
   --foreground: oklch(0.25 0.08 85);

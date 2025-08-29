@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { TreePine, Sparkle, Hand } from '@phosphor-icons/react'
+import { TreePine, Sparkle, Hand, Cloud, Sun, CloudRain, CloudSnow } from '@phosphor-icons/react'
 import { Tree } from '@/App'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -15,6 +15,8 @@ interface ForestProps {
   getTreeCost: (type: Tree['type']) => number
 }
 
+type WeatherType = 'sunny' | 'cloudy' | 'rainy' | 'snowy'
+
 const treeTypes = {
   oak: { emoji: '🌳', name: 'Oak Tree', description: 'Strong and enduring' },
   pine: { emoji: '🌲', name: 'Pine Tree', description: 'Evergreen and resilient' },
@@ -22,10 +24,38 @@ const treeTypes = {
   willow: { emoji: '🌿', name: 'Willow Tree', description: 'Graceful and flexible' }
 }
 
+const weatherEffects = {
+  sunny: {
+    name: 'Sunny',
+    icon: Sun,
+    bgGradient: 'from-sky-200 via-sky-100 to-green-50',
+    description: '☀️ Perfect weather for growth!'
+  },
+  cloudy: {
+    name: 'Cloudy',
+    icon: Cloud, 
+    bgGradient: 'from-gray-200 via-gray-100 to-green-100',
+    description: '☁️ Peaceful and calm'
+  },
+  rainy: {
+    name: 'Rainy',
+    icon: CloudRain,
+    bgGradient: 'from-slate-300 via-slate-200 to-green-200',
+    description: '🌧️ Nourishing rain helps trees grow!'
+  },
+  snowy: {
+    name: 'Snowy', 
+    icon: CloudSnow,
+    bgGradient: 'from-slate-100 via-white to-green-50',
+    description: '❄️ Quiet winter slows growth'
+  }
+}
+
 export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosition, getTreeCost }: ForestProps) {
   const [selectedType, setSelectedType] = useState<Tree['type'] | null>(null)
   const [draggedTree, setDraggedTree] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [currentWeather, setCurrentWeather] = useState<WeatherType>('sunny')
   const forestRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -36,6 +66,127 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
 
     return () => clearInterval(interval)
   }, [])
+
+  // Weather cycling effect
+  useEffect(() => {
+    const weatherCycle = () => {
+      const weathers: WeatherType[] = ['sunny', 'cloudy', 'rainy', 'snowy']
+      const randomWeather = weathers[Math.floor(Math.random() * weathers.length)]
+      
+      // Weight sunny weather more heavily for better game experience
+      const weightedWeather = Math.random() < 0.4 ? 'sunny' : randomWeather
+      setCurrentWeather(weightedWeather)
+    }
+
+    // Change weather every 2-5 minutes
+    const weatherInterval = setInterval(weatherCycle, (2 + Math.random() * 3) * 60 * 1000)
+    
+    // Set initial weather
+    weatherCycle()
+
+    return () => clearInterval(weatherInterval)
+  }, [])
+
+  // Weather particle effects components
+  const RainDrops = () => (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {Array.from({ length: 50 }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-0.5 h-6 bg-blue-400 opacity-60"
+          initial={{ 
+            x: Math.random() * 100 + '%',
+            y: '-10px',
+            opacity: 0.4 + Math.random() * 0.4
+          }}
+          animate={{ 
+            y: '400px',
+            opacity: 0
+          }}
+          transition={{ 
+            duration: 1 + Math.random() * 1,
+            repeat: Infinity,
+            delay: Math.random() * 2,
+            ease: 'linear'
+          }}
+          style={{
+            left: Math.random() * 100 + '%',
+            transform: 'rotate(10deg)'
+          }}
+        />
+      ))}
+    </div>
+  )
+
+  const SnowFlakes = () => (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {Array.from({ length: 30 }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute text-white opacity-80 select-none"
+          initial={{ 
+            x: Math.random() * 100 + '%',
+            y: '-20px',
+            rotate: 0
+          }}
+          animate={{ 
+            y: '400px',
+            x: `${Math.random() * 100}%`,
+            rotate: 360,
+            opacity: [0.8, 0.3, 0.8]
+          }}
+          transition={{ 
+            duration: 3 + Math.random() * 4,
+            repeat: Infinity,
+            delay: Math.random() * 3,
+            ease: 'easeInOut'
+          }}
+          style={{
+            fontSize: Math.random() * 8 + 8 + 'px'
+          }}
+        >
+          ❄
+        </motion.div>
+      ))}
+    </div>
+  )
+
+  const MovingClouds = () => (
+    <div className="absolute inset-0 pointer-events-none">
+      <motion.div
+        className="absolute top-4 w-20 h-10 bg-white rounded-full opacity-50 shadow-sm"
+        initial={{ x: '-100px' }}
+        animate={{ x: '420px' }}
+        transition={{ 
+          duration: 25, 
+          repeat: Infinity, 
+          ease: 'linear' 
+        }}
+      />
+      <motion.div
+        className="absolute top-12 w-16 h-8 bg-white rounded-full opacity-40 shadow-sm"
+        initial={{ x: '-80px' }}
+        animate={{ x: '400px' }}
+        transition={{ 
+          duration: 30, 
+          repeat: Infinity, 
+          ease: 'linear',
+          delay: 5
+        }}
+      />
+      <motion.div
+        className="absolute top-8 w-14 h-7 bg-white rounded-full opacity-45 shadow-sm"
+        initial={{ x: '-70px' }}
+        animate={{ x: '390px' }}
+        transition={{ 
+          duration: 20, 
+          repeat: Infinity, 
+          ease: 'linear',
+          delay: 10
+        }}
+      />
+    </div>
+  )
 
   const handlePlantTree = (type: Tree['type']) => {
     const cost = getTreeCost(type)
@@ -56,7 +207,12 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
     
     // Cat blessings accelerate growth (each blessing reduces required time by 20%)
     const accelerationFactor = 1 - (tree.catBlessings * 0.2)
-    const adjustedDays = daysSincePlanted / Math.max(accelerationFactor, 0.3) // Minimum 30% of original time
+    
+    // Weather affects growth: rain speeds it up, snow slows it down
+    const weatherMultiplier = currentWeather === 'rainy' ? 0.8 : 
+                             currentWeather === 'snowy' ? 1.3 : 1.0
+    
+    const adjustedDays = (daysSincePlanted * weatherMultiplier) / Math.max(accelerationFactor, 0.3)
     
     if (adjustedDays < 1) return 'seedling'
     if (adjustedDays < 3) return 'young'
@@ -213,22 +369,34 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Your Forest
-            {trees.length > 0 && (
-              <Badge variant="outline" className="text-xs">
-                <Hand className="w-3 h-3 mr-1" />
-                Drag to move
-              </Badge>
-            )}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              Your Forest
+              {trees.length > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  <Hand className="w-3 h-3 mr-1" />
+                  Drag to move
+                </Badge>
+              )}
+            </CardTitle>
+            <Badge variant="secondary" className="flex items-center gap-2">
+              {(() => {
+                const WeatherIcon = weatherEffects[currentWeather].icon
+                return <WeatherIcon className="w-4 h-4" />
+              })()}
+              {weatherEffects[currentWeather].name}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {weatherEffects[currentWeather].description}
+          </p>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {/* Forest Scene - 2D Side View - Always visible */}
             <div 
               ref={forestRef}
-              className="relative min-h-96 bg-gradient-to-b from-sky-200 via-sky-100 to-green-50 rounded-lg overflow-hidden border-2 border-border cursor-crosshair"
+              className={`relative min-h-96 bg-gradient-to-b ${weatherEffects[currentWeather].bgGradient} rounded-lg overflow-hidden border-2 border-border cursor-crosshair transition-all duration-1000`}
             >
                 {/* Background mountains/hills */}
                 <div className="absolute inset-0 pointer-events-none">
@@ -261,21 +429,49 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
                   <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-b from-green-400 to-green-600"></div>
                 </div>
                 
-                {/* Sun */}
-                <div className="absolute top-6 right-8 w-12 h-12 bg-gradient-radial from-yellow-300 to-yellow-400 rounded-full opacity-80 shadow-lg shadow-yellow-200/50 pointer-events-none"></div>
+                {/* Weather Effects */}
+                {currentWeather === 'rainy' && <RainDrops />}
+                {currentWeather === 'snowy' && <SnowFlakes />}
+                {(currentWeather === 'cloudy' || currentWeather === 'rainy') && <MovingClouds />}
                 
-                {/* Clouds */}
-                <div className="absolute top-8 left-12 w-16 h-8 bg-white rounded-full opacity-70 shadow-sm pointer-events-none"></div>
-                <div className="absolute top-12 left-32 w-12 h-6 bg-white rounded-full opacity-60 shadow-sm pointer-events-none"></div>
-                <div className="absolute top-6 left-1/2 w-14 h-7 bg-white rounded-full opacity-65 shadow-sm pointer-events-none"></div>
+                {/* Sun - conditional visibility based on weather */}
+                {(currentWeather === 'sunny' || currentWeather === 'cloudy') && (
+                  <motion.div 
+                    className={`absolute top-6 right-8 w-12 h-12 bg-gradient-radial from-yellow-300 to-yellow-400 rounded-full shadow-lg shadow-yellow-200/50 pointer-events-none transition-opacity duration-1000 ${
+                      currentWeather === 'cloudy' ? 'opacity-40' : 'opacity-80'
+                    }`}
+                    animate={{ 
+                      scale: currentWeather === 'sunny' ? [1, 1.05, 1] : 1,
+                      opacity: currentWeather === 'sunny' ? [0.8, 1, 0.8] : (currentWeather === 'cloudy' ? 0.4 : 0.8)
+                    }}
+                    transition={{ 
+                      duration: 4, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                )}
                 
-                {/* Walking Cat - Always present */}
+                {/* Static clouds for sunny weather */}
+                {currentWeather === 'sunny' && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-8 left-12 w-16 h-8 bg-white rounded-full opacity-70 shadow-sm"></div>
+                    <div className="absolute top-12 left-32 w-12 h-6 bg-white rounded-full opacity-60 shadow-sm"></div>
+                    <div className="absolute top-6 left-1/2 w-14 h-7 bg-white rounded-full opacity-65 shadow-sm"></div>
+                  </div>
+                )}
+                
+                {/* Walking Cat - Always present, reacts to weather */}
                 <motion.div
                   className="absolute text-xl pointer-events-none select-none"
                   initial={{ x: -60 }}
-                  animate={{ x: [0, 200, 400, 200, 0] }}
+                  animate={{ 
+                    x: currentWeather === 'rainy' || currentWeather === 'snowy' 
+                      ? [0, 100, 200, 100, 0]  // Slower movement in bad weather
+                      : [0, 200, 400, 200, 0]  // Normal movement
+                  }}
                   transition={{ 
-                    duration: 30, 
+                    duration: currentWeather === 'rainy' || currentWeather === 'snowy' ? 40 : 30, 
                     repeat: Infinity, 
                     ease: "linear",
                     times: [0, 0.25, 0.5, 0.75, 1]
@@ -285,15 +481,17 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
                   <motion.div
                     animate={{ 
                       scale: [1, 1.05, 1],
-                      rotate: [0, -2, 2, 0]
+                      rotate: currentWeather === 'snowy' ? [0, -3, 3, 0] : [0, -2, 2, 0]
                     }}
                     transition={{ 
-                      duration: 1.5, 
+                      duration: currentWeather === 'snowy' ? 2 : 1.5, 
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
                   >
-                    🐱
+                    {currentWeather === 'rainy' ? '🐱☔' : 
+                     currentWeather === 'snowy' ? '🐱❄️' : 
+                     '🐱'}
                   </motion.div>
                 </motion.div>
                 
@@ -330,7 +528,9 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
                         fontSize: `${1.2 + sizeMultiplier * 1.3}rem`,
                         filter: tree.catBlessings > 0 
                           ? 'drop-shadow(0 0 12px rgba(147, 51, 234, 0.6)) drop-shadow(0 2px 4px rgba(0,0,0,0.2))' 
-                          : 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))'
+                          : currentWeather === 'snowy' 
+                            ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.15)) drop-shadow(0 0 8px rgba(255,255,255,0.8))'
+                            : 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))'
                       }}
                       onMouseDown={(e) => handleMouseDown(e, tree.id)}
                       title={`${treeTypes[tree.type].name} - ${getGrowthDescription(tree)}`}
@@ -480,6 +680,23 @@ export default function Forest({ trees, pawPoints, onPlantTree, onUpdateTreePosi
                       {trees.length >= 5 && (
                         <div className="mt-2 text-xs text-green-600 font-medium">
                           🌲 Your forest is becoming a thriving ecosystem with wildlife! 🦋
+                        </div>
+                      )}
+                      
+                      {/* Weather effects description */}
+                      {currentWeather === 'rainy' && (
+                        <div className="mt-2 text-xs text-blue-600 font-medium">
+                          🌧️ The rain is nourishing your trees - they grow faster in this weather!
+                        </div>
+                      )}
+                      {currentWeather === 'snowy' && (
+                        <div className="mt-2 text-xs text-slate-600 font-medium">
+                          ❄️ Winter snow slows growth, but creates a peaceful, magical atmosphere.
+                        </div>
+                      )}
+                      {currentWeather === 'cloudy' && (
+                        <div className="mt-2 text-xs text-gray-600 font-medium">
+                          ☁️ The gentle clouds provide perfect growing conditions.
                         </div>
                       )}
                     </>
